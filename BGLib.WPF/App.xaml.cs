@@ -18,7 +18,8 @@ namespace BGLib.WPF
 
         protected override void RegisterTypes(IContainerRegistry registry)
         {
-            registry.RegisterForNavigation<DiscoveryView>();
+            registry.RegisterForNavigation<DiscoveriesView>();
+            registry.RegisterForNavigation<DeviceView>();
         }
 
         protected override void OnInitialized()
@@ -26,7 +27,7 @@ namespace BGLib.WPF
             base.OnInitialized();
 
             var regionManager = Container.Resolve<IRegionManager>();
-            var source = nameof(DiscoveryView);
+            var source = nameof(DiscoveriesView);
             regionManager.RequestNavigate(source);
         }
     }

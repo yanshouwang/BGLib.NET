@@ -1,28 +1,48 @@
-﻿using Prism.Regions;
+﻿using BGLib.API;
+using Prism.Mvvm;
+using System.Collections.Generic;
 
 namespace BGLib.WPF.ViewModels
 {
-    class DiscoveryViewModel : BaseViewModel
+    class DiscoveryViewModel : BindableBase
     {
-        public DiscoveryViewModel(IRegionManager regionManager)
-            : base(regionManager)
-        {
+        public BGAddress Address { get; }
 
+        string _name;
+        public string Name
+        {
+            get => _name;
+            set => SetProperty(ref _name, value);
         }
 
-        public override void OnNavigatedTo(NavigationContext navigationContext)
+        BGDiscoveryType _type;
+        public BGDiscoveryType Type
         {
-            base.OnNavigatedTo(navigationContext);
+            get => _type;
+            set => SetProperty(ref _type, value);
         }
 
-        public override void OnNavigatedFrom(NavigationContext navigationContext)
+        IList<BGAdvertisement> _advertisements;
+        public IList<BGAdvertisement> Advertisements
         {
-            base.OnNavigatedFrom(navigationContext);
+            get => _advertisements;
+            set => SetProperty(ref _advertisements, value);
         }
 
-        public override void Destroy()
+        sbyte _rssi;
+        public sbyte RSSI
         {
-            base.Destroy();
+            get => _rssi;
+            set => SetProperty(ref _rssi, value);
+        }
+
+        public DiscoveryViewModel(BGDiscovery discovery)
+        {
+            Address = discovery.Address;
+            Name = discovery.Name;
+            Type = discovery.Type;
+            Advertisements = discovery.Advertisements;
+            RSSI = discovery.RSSI;
         }
     }
 }

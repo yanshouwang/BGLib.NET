@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace BGLib.WPF.Views
 {
     /// <summary>
-    /// DiscoveryView.xaml 的交互逻辑
+    /// DeviceView.xaml 的交互逻辑
     /// </summary>
-    public partial class DiscoveryView : Page
+    public partial class DeviceView : Page
     {
-        public DiscoveryView()
+        public DeviceView()
         {
             InitializeComponent();
         }

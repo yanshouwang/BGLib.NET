@@ -1,0 +1,80 @@
+﻿<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:BGLib.WPF.Views"
+      xmlns:lib="clr-namespace:BGLib.API;assembly=BGLib.API"
+      x:Class="BGLib.WPF.Views.DiscoveriesView"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="Discovery View"
+      Background="#F2F2F2">
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="2" Content="START DISCOVERY" Padding="4"
+                    Command="{Binding StartDiscoveryCommand}"/>
+            <Button Grid.Column="4" Content="STOP DISCOVERY" Padding="4"
+                    Command="{Binding StopDiscoveryCommand}"/>
+            <Button Grid.Column="6" Content="CLEAR DISCOVERIES" Padding="4"
+                    Command="{Binding ClearDiscoveriesCommand}"/>
+        </Grid>
+        <ListView x:Name="AdvertisementsView" Grid.Row="2"
+                  BorderThickness="0"
+                  Background="Transparent"
+                  HorizontalContentAlignment="Stretch"
+                  ItemsSource="{Binding Discoveries}">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListViewItem">
+                                <Border Margin="4" Padding="12" CornerRadius="12"
+                                        Background="White">
+                                    <ContentPresenter/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate DataType="{x:Type lib:BGDiscovery}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="4"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="4"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="4"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="{Binding Address}"/>
+                        <TextBlock Grid.Row="2" Text="{Binding Name}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="4" Grid.RowSpan="5"
+                                   Text="{Binding RSSI}" FontSize="20"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Page>

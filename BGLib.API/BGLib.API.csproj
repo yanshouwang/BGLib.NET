@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net461;netstandard2.1;net5.0</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>yanshouwang</Authors>
+    <Company>yanshouwang</Company>
+    <Description>BGLib for .NET</Description>
+    <Copyright>Copyright © yanshouwang 2021</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/yanshouwang/BGLib.NET.git</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/yanshouwang/BGLib.NET.git</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>BGLib BGAPI BLED112</PackageTags>
+    <PackageReleaseNotes>BGLib for .NET</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

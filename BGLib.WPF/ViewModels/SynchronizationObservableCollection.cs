@@ -4,9 +4,9 @@ using System.Threading;
 
 namespace BGLib.WPF.ViewModels
 {
-    class SynchronizationObservableCollection<T> : ObservableCollection<T>
+    internal class SynchronizationObservableCollection<T> : ObservableCollection<T>
     {
-        readonly SynchronizationContext _context;
+        private readonly SynchronizationContext _context;
 
         public SynchronizationObservableCollection()
         {
@@ -21,11 +21,9 @@ namespace BGLib.WPF.ViewModels
             }
             else
             {
-                _context.Post(i =>
-                {
-                    var eventArgs = (NotifyCollectionChangedEventArgs)i;
-                    base.OnCollectionChanged(eventArgs);
-                }, e);
+                _context.Post(
+                    state => base.OnCollectionChanged(state as NotifyCollectionChangedEventArgs),
+                    e);
             }
         }
     }

@@ -4,6 +4,44 @@ namespace BGLib.API
 {
     #region Commands/Responses
 
+    internal enum SystemCommand : byte
+    {
+        Reset = 0x00,
+        Hello = 0x01,
+        AddressGet = 0x02,
+        //RegWrite = 0x03,
+        //RegRead = 0x04,
+        GetCounters = 0x05,
+        GetConnections = 0x06,
+        //ReadMemory = 0x07,
+        GetInfo = 0x08,
+        EndpointTX = 0x09,
+        WhitelistAppend = 0x0A,
+        WhitelistRemove = 0x0B,
+        WhitelistClear = 0x0C,
+        EndpointRX = 0x0D,
+        EndpointSetWatermarks = 0x0E,
+        AesSetKey = 0x0F,
+        AesEncrypt = 0x10,
+        AesDecrypt = 0x11,
+        UsbEnumerationStatusGet = 0x12,
+        GetBootloader = 0x13,
+        DelayReset = 0x14,
+    }
+
+    internal enum PersistentStoreCommand : byte
+    {
+        PSDefrag = 0x00,
+        PSDump = 0x01,
+        PSEraseAll = 0x02,
+        PSSave = 0x03,
+        PSLoad = 0x04,
+        PSErase = 0x05,
+        ErasePage = 0x06,
+        WriteData = 0x07,
+        ReadData = 0x08,
+    }
+
     internal enum AttributeClientCommand : byte
     {
         FindByTypeValue = 0x00,
@@ -88,19 +126,6 @@ namespace BGLib.API
         GetTimestamp = 0x16,
     }
 
-    internal enum PersistentStoreCommand : byte
-    {
-        PSDefrag = 0x00,
-        PSDump = 0x01,
-        PSEraseAll = 0x02,
-        PSSave = 0x03,
-        PSLoad = 0x04,
-        PSErase = 0x05,
-        ErasePage = 0x06,
-        WriteData = 0x07,
-        ReadData = 0x08,
-    }
-
     internal enum SecurityManagerCommand : byte
     {
         DeleteBonding = 0x02,
@@ -112,31 +137,6 @@ namespace BGLib.API
         SetPairingDistributionKeys = 0x08,
         SetParameters = 0x03,
         WhitelistBonds = 0x07,
-    }
-
-    internal enum SystemCommand : byte
-    {
-        Reset = 0x00,
-        Hello = 0x01,
-        AddressGet = 0x02,
-        RegWrite = 0x03,
-        RegRead = 0x04,
-        GetCounters = 0x05,
-        GetConnections = 0x06,
-        ReadMemory = 0x07,
-        GetInfo = 0x08,
-        EndpointTX = 0x09,
-        WhitelistAppend = 0x0A,
-        WhitelistRemove = 0x0B,
-        WhitelistClear = 0x0C,
-        EndpointRX = 0x0D,
-        EndpointSetWatermarks = 0x0E,
-        AesSetKey = 0x0F,
-        AesEncrypt = 0x10,
-        AesDecrypt = 0x11,
-        UsbEnumerationStatusGet = 0x12,
-        GetBootloader = 0x13,
-        DelayReset = 0x14,
     }
 
     internal enum TestingCommand : byte
@@ -161,6 +161,23 @@ namespace BGLib.API
     #endregion
 
     #region Events
+
+    internal enum SystemEvent : byte
+    {
+        Boot = 0x00,
+        //Debug = 0x01,
+        EndpointWatermarkRX = 0x02,
+        EndpointWatermarkTX = 0x03,
+        ScriptFailure = 0x04,
+        NoLicenseKey = 0x05,
+        ProtocolError = 0x06,
+        UsbEnumerated = 0x07,
+    }
+
+    internal enum PersistentStoreEvent : byte
+    {
+        PSKey = 0x00,
+    }
 
     internal enum AttributeClientEvent : byte
     {
@@ -204,11 +221,6 @@ namespace BGLib.API
         RadioError = 0x04,
     }
 
-    internal enum PersistentStoreEvent : byte
-    {
-        PSKey = 0x00,
-    }
-
     internal enum SecurityManagerEvent : byte
     {
         SmpData = 0x00,
@@ -216,18 +228,6 @@ namespace BGLib.API
         PassKeyDisplay = 0x02,
         PasskeyRequest = 0x03,
         BondStatus = 0x04,
-    }
-
-    internal enum SystemEvent : byte
-    {
-        Boot = 0x00,
-        Debug = 0x01,
-        EndpointWatermarkRX = 0x02,
-        EndpointWatermarkTX = 0x03,
-        ScriptFailure = 0x04,
-        NoLicenseKey = 0x05,
-        ProtocolError = 0x06,
-        UsbEnumerated = 0x07,
     }
 
     internal enum DeviceFirmwareUpgradeEvent : byte
@@ -369,94 +369,11 @@ namespace BGLib.API
 
     #endregion
 
-    #region System
-
-    internal enum Endpoint
-    {
-        API,
-        Test,
-        Script,
-        USB,
-        UART0,
-        UART1,
-    }
-
-    #endregion
-
     #region Testing
 
     #endregion
 
     #region DeviceFirmwareUpgrade
-
-    #endregion
-
-    #region Error Codes
-
-    internal enum ErrorCode : ushort
-    {
-        // BGAPI
-        InvalidParameter = 0x0180,
-        DeviceInWrongState = 0x0181,
-        OutOfMemory = 0x0182,
-        FeatureNotImplemented = 0x0183,
-        CommandNotRecognized = 0x0184,
-        Timeout = 0x0185,
-        NotConnected = 0x0186,
-        Flow = 0x0187,
-        UserAttribute = 0x0188,
-        InvalidLicenseKey = 0x0189,
-        CommandTooLong = 0x018A,
-        OutOfBonds = 0x018B,
-        ScriptOverflow = 0x018C,
-        // Bluetooth errors
-        AuthenticationFailure = 0x0205,
-        PinOrKeyMissing = 0x0206,
-        MemoryCapacityExceeded = 0x0207,
-        ConnectionTimeout = 0x0208,
-        ConnectionLimitExceeded = 0x0209,
-        CommandDisallowed = 0x020C,
-        InvalidCommandParameters = 0x0212,
-        RemoteUserTerminatedConnection = 0x0213,
-        ConnectionTerminatedByLocalHost = 0x0216,
-        LLResponseTimeout = 0x0222,
-        LLInstantPassed = 0x0228,
-        ControllerBusy = 0x023A,
-        UnacceptableConnectionInterval = 0x023B,
-        DirectedAdvertisingTimeout = 0x023C,
-        MicFailure = 0x023D,
-        ConnectionFailedToBeEstablished = 0x023E,
-        // Security manager protocol errors
-        PasskeyEntryFailed = 0x0301,
-        OobDataIsNotAvailable = 0x0302,
-        AuthenticationRequirements = 0x0303,
-        ConfirmValueFailed = 0x0304,
-        PairingNotSupported = 0x0305,
-        EncryptionKeySize = 0x0306,
-        CommandNotSupported = 0x0307,
-        UnspecifiedReason = 0x0308,
-        RepeatedAttempts = 0x0309,
-        InvalidParamters = 0x030A,
-        // Attribute protocol errors
-        InvalidHandle = 0x0401,
-        ReadNotPermitted = 0x0402,
-        WriteNotPermitted = 0x0403,
-        InvalidPDU = 0x0404,
-        InsufficientAuthentication = 0x0405,
-        RequestNotSupported = 0x0406,
-        InvalidOffset = 0x0407,
-        InsufficientAuthorization = 0x0408,
-        PrepareQueueFull = 0x0409,
-        AttributeNotFound = 0x040A,
-        AttributeNotLong = 0x040B,
-        InsufficientEncryptionKeySize = 0x040C,
-        InvalidAttributeValueLength = 0x040D,
-        UnlikelyError = 0x040E,
-        InsufficientEncryption = 0x040F,
-        UnsupportedGroupType = 0x0410,
-        InsufficientResources = 0x0411,
-        ApplicationErrorCodes = 0x0480,
-    }
 
     #endregion
 }

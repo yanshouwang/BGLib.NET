@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace BGLib.API
 {
@@ -18,7 +19,9 @@ namespace BGLib.API
             }
             Type = type;
             RawValue = rawValue;
-            Value = BitConverter.ToString(rawValue).Replace('-', ':');
+            // Bluetooth address in little endian format
+            var reversed = rawValue.Reverse().ToArray();
+            Value = BitConverter.ToString(reversed).Replace('-', ':');
         }
 
         public override string ToString()

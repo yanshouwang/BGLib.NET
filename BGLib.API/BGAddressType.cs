@@ -2,7 +2,7 @@
 {
     public enum BGAddressType : byte
     {
-        Public,
-        Random,
+        Public = 0,
+        Random = 1,
     }
 }

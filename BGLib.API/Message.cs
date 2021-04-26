@@ -24,7 +24,7 @@ namespace BGLib.API
         /// </summary>
         public byte[] Payload { get; }
 
-        public Message(byte type, byte @class, byte id, byte[] payload)
+        public Message(byte type, byte @class, byte id, byte[] payload = null)
         {
             if (payload == null)
             {

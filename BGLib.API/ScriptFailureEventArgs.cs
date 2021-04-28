@@ -2,9 +2,9 @@
 
 namespace BGLib.API
 {
-    public class BGScriptFailureEventArgs : EventArgs
+    public class ScriptFailureEventArgs : EventArgs
     {
-        public BGScriptFailureEventArgs(ushort address, ushort errorCode)
+        public ScriptFailureEventArgs(ushort address, ushort errorCode)
         {
             Address = address;
             ErrorCode = errorCode;

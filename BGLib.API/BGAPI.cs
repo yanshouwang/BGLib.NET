@@ -6,183 +6,82 @@ using System.Threading.Tasks;
 
 namespace BGLib.API
 {
-    public class BGSerialPort : IDisposable
+    public class BGAPI
     {
-        #region Fields
-
-        private readonly SerialPort _serial;
+        private readonly ICommunicator _communicator;
         private readonly MessageAnalyzer _analyzer;
-        private readonly IDictionary<ushort, string> _errors;
 
-        #endregion
-
-        #region Methods
-
-        public BGSerialPort(
-            string portName,
-            int baudRate = 256000,
-            BGParity parity = BGParity.None,
-            int dataBits = 8,
-            BGStopBits stopBits = BGStopBits.One)
+        protected BGAPI(ICommunicator communicator)
         {
-            _serial = new SerialPort(portName, baudRate, (Parity)parity, dataBits, (StopBits)stopBits);
+            _communicator = communicator;
             _analyzer = new MessageAnalyzer();
-            _errors = new Dictionary<ushort, string>()
-            {
-                // BGAPI Errors
-                [0x0180] = "Command contained invalid parameter.",
-                [0x0181] = "Device is in wrong state to receive command.",
-                [0x0182] = "Device has run out of memory.",
-                [0x0183] = "Feature is not implemented.",
-                [0x0184] = "Command was not recognized.",
-                [0x0185] = "Command or Procedure failed due to timeout.",
-                [0x0186] = "Connection handle passed is to command is not a valid handle.",
-                [0x0187] = "Command would cause either underflow or overflow error.",
-                [0x0188] = "User attribute was accessed through API which is not supported.",
-                [0x0189] = "No valid license key found.",
-                [0x018A] = "Command maximum length exceeded.",
-                [0x018B] = "Bonding procedure can't be started because device has no space left for bond.",
-                [0x018C] = "Module was reset due to script stack overflow.",
-                // Bluetooth Errors
-                [0x0205] = "Pairing or authentication failed due to incorrect results in the pairing or authentication procedure. This could be due to an incorrect PIN or Link Key.",
-                [0x0206] = "Pairing failed because of missing PIN, or authentication failed because of missing Key.",
-                [0x0207] = "Controller is out of memory.",
-                [0x0208] = "Link supervision timeout has expired.",
-                [0x0209] = "Controller is at limit of connections it can support.",
-                [0x020C] = "Command requested cannot be executed because the Controller is in a state where it cannot process this command at this time.",
-                [0x0212] = "Command contained invalid parameters.",
-                [0x0213] = "User on the remote device terminated the connection.",
-                [0x0216] = "Local device terminated the connection.",
-                [0x0222] = "Connection terminated due to link-layer procedure timeout.",
-                [0x0228] = "Received link-layer control packet where instant was in the past.",
-                [0x023A] = "Operation was rejected because the controller is busy and unable to process the request.",
-                [0x023B] = "The Unacceptable Connection Interval error code indicates that the remote device terminated the connection because of an unacceptable connection interval.",
-                [0x023C] = "Directed advertising completed without a connection being created.",
-                [0x023D] = "Connection was terminated because the Message Integrity Check (MIC) failed on a received packet.",
-                [0x023E] = "LL initiated a connection but the connection has failed to be established. Controller did not receive any packets from remote end.",
-                // Security Manager Protocol Errors
-                [0x0301] = "The user input of passkey failed, for example, the user cancelled the operation.",
-                [0x0302] = "Out of Band data is not available for authentication.",
-                [0x0303] = "The pairing procedure cannot be performed as authentication requirements cannot be met due to IO capabilities of one or both devices.",
-                [0x0304] = "The confirm value does not match the calculated compare value.",
-                [0x0305] = "Pairing is not supported by the device.",
-                [0x0306] = "The resultant encryption key size is insufficient for the security requirements of this device.",
-                [0x0307] = "The SMP command received is not supported on this device.",
-                [0x0308] = "Pairing failed due to an unspecified reason.",
-                [0x0309] = "Pairing or authentication procedure is disallowed because too little time has elapsed since last pairing request or security request.",
-                [0x030A] = "The Invalid Parameters error code indicates: the command length is invalid or a parameter is outside of the specified range.",
-                // Attribute Protocol Errors
-                [0x0401] = "The attribute handle given was not valid on this server.",
-                [0x0402] = "The attribute cannot be read.",
-                [0x0403] = "The attribute cannot be written.",
-                [0x0404] = "The attribute PDU was invalid.",
-                [0x0405] = "The attribute requires authentication before it can be read or written.",
-                [0x0406] = "Attribute Server does not support the request received from the client.",
-                [0x0407] = "Offset specified was past the end of the attribute.",
-                [0x0408] = "The attribute requires authorization before it can be read or written.",
-                [0x0409] = "Too many prepare writes have been queueud.",
-                [0x040A] = "No attribute found within the given attribute handle range.",
-                [0x040B] = "The attribute cannot be read or written using the Read Blob Request.",
-                [0x040C] = "The Encryption Key Size used for encrypting this link is insufficient.",
-                [0x040D] = "The attribute value length is invalid for the operation.",
-                [0x040E] = "The attribute request that was requested has encountered an error that was unlikely, and therefore could not be completed as requested.",
-                [0x040F] = "The attribute requires encryption before it can be read or written.",
-                [0x0410] = "The attribute type is not a supported grouping attribute as defined by a higher layer specification.",
-                [0x0411] = "Insufficient Resources to complete the request.",
-                [0x0480] = "Application error code defined by a higher layer specification.",
-            };
 
-            _serial.DataReceived += OnDataReceived;
-            _serial.ErrorReceived += OnErrorReceived;
-            _serial.PinChanged += OnPinChanged;
-            _analyzer.MessageAnalyzed += OnMessageAnalyzed;
+            _communicator.ValueChanged += OnValueChanged;
+            _analyzer.Analyzed += OnAnalyzed;
         }
 
-        public void Open()
+        private void OnValueChanged(object sender, ValueEventArgs e)
         {
-            _serial.Open();
-        }
-
-        public void Close()
-        {
-            _serial.Close();
-        }
-
-        private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            var data = new byte[_serial.BytesToRead];
-            _serial.Read(data, 0, data.Length);
-            foreach (var value in data)
+            foreach (var value in e.Value)
             {
                 _analyzer.Analyze(value);
             }
         }
 
-        private void OnMessageAnalyzed(object sender, MessageEventArgs e)
+        private void OnAnalyzed(object sender, MessageEventArgs e)
         {
-            var type = (byte)MessageType.Event;
-            if (e.Message.Type != type)
+            var type = (MessageType)e.Message.Type;
+            if (type != MessageType.Event)
                 return;
             var @class = (MessageClass)e.Message.Class;
-            try
+            switch (@class)
             {
-                switch (@class)
-                {
-                    case MessageClass.System:
-                        OnSystemEventAnalyzed(e.Message);
-                        break;
-                    case MessageClass.PersistentStore:
-                        OnPersistentStoreEventAnalyzed(e.Message);
-                        break;
-                    case MessageClass.AttributeDatabase:
-                        OnAttributeDatabaseEventAnalyzed(e.Message);
-                        break;
-                    case MessageClass.Connection:
-                        OnConnectionEventAnalyzed(e.Message);
-                        break;
-                    case MessageClass.AttributeClient:
-                        OnAttributeClientEventAnalyzed(e.Message);
-                        break;
-                    case MessageClass.SecurityManager:
-                        OnSecurityManagerEventAnalyzed(e.Message);
-                        break;
-                    case MessageClass.GenericAccessProfile:
-                        OnGenericAccessProfileEventAnalyzed(e.Message);
-                        break;
-                    case MessageClass.Hardware:
-                        OnHardwareEventAnalyzed(e.Message);
-                        break;
-                    case MessageClass.DeviceFirmwareUpgrade:
-                        OnDeviceFirmwareUpgradeEventAnalyzed(e.Message);
-                        break;
-                    case MessageClass.Testing:  // Testing doesn't have events.
-                    default:
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Analyze event failed, just skip.
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine(ex.Message);
-#endif
+                case MessageClass.System:
+                    OnSystemEventAnalyzed(e.Message);
+                    break;
+                case MessageClass.PersistentStore:
+                    OnPersistentStoreEventAnalyzed(e.Message);
+                    break;
+                case MessageClass.AttributeDatabase:
+                    OnAttributeDatabaseEventAnalyzed(e.Message);
+                    break;
+                case MessageClass.Connection:
+                    OnConnectionEventAnalyzed(e.Message);
+                    break;
+                case MessageClass.AttributeClient:
+                    OnAttributeClientEventAnalyzed(e.Message);
+                    break;
+                case MessageClass.SecurityManager:
+                    OnSecurityManagerEventAnalyzed(e.Message);
+                    break;
+                case MessageClass.GenericAccessProfile:
+                    OnGenericAccessProfileEventAnalyzed(e.Message);
+                    break;
+                case MessageClass.Hardware:
+                    OnHardwareEventAnalyzed(e.Message);
+                    break;
+                case MessageClass.DeviceFirmwareUpgrade:
+                    OnDeviceFirmwareUpgradeEventAnalyzed(e.Message);
+                    break;
+                case MessageClass.Testing:  // Testing doesn't have events.
+                default:
+                    break;
             }
         }
 
-        private string GetMessage(ushort errorCode)
+        private void Write(Message command)
         {
-            return _errors.TryGetValue(errorCode, out var message)
-                ? message
-                : $"Unknown error with code: {errorCode}";
+            var value = command.ToArray();
+            _communicator.Write(value);
         }
 
         private async Task<Message> WriteAsync(Message command)
         {
             var writeTCS = new TaskCompletionSource<Message>();
-            var onMessageAnalyzed = new EventHandler<MessageEventArgs>((s, e) =>
+            var onAnalyzed = new EventHandler<MessageEventArgs>((s, e) =>
             {
-                var type = (byte)MessageType.Response;
-                if (e.Message.Type != type ||
+                var type = (MessageType)e.Message.Type;
+                if (type != MessageType.Response ||
                     e.Message.Class != command.Class ||
                     e.Message.Id != command.Id)
                 {
@@ -190,36 +89,44 @@ namespace BGLib.API
                 }
                 writeTCS.TrySetResult(e.Message);
             });
-            _analyzer.MessageAnalyzed += onMessageAnalyzed;
+            _analyzer.Analyzed += onAnalyzed;
             try
             {
-                var data = command.ToBytes();
-                _serial.Write(data, 0, data.Length);
+                var value = command.ToArray();
+                _communicator.Write(value);
                 return await writeTCS.Task;
             }
             finally
             {
-                _analyzer.MessageAnalyzed -= onMessageAnalyzed;
+                _analyzer.Analyzed -= onAnalyzed;
             }
         }
 
-        #endregion
+        private Message GetCommand(MessageClass @class, byte id, byte[] payload = null)
+        {
+            var type = (byte)MessageType.Command;
+            var classValue = (byte)@class;
+            return new Message(type, classValue, id, payload);
+        }
 
         #region Commands - System
+
+        private Message GetSystemCommand(SystemCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.System, id, payload);
+        }
 
         /// <summary>
         /// This command resets the local device immediately. The command does not have a response.
         /// </summary>
         /// <param name="mode">Selects the boot mode</param>
-        public void Reset(BGBootMode mode)
+        public void Reset(BootMode mode)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.Reset;
-            var payload = new[] { (byte)mode };
-            var command = new Message(type, @class, id, payload);
-            var data = command.ToBytes();
-            _serial.Write(data, 0, data.Length);
+            var modeValue = (byte)mode;
+            var payload = new[] { modeValue };
+            var command = GetSystemCommand(SystemCommand.Reset, payload);
+            Write(command);
         }
 
         /// <summary>
@@ -228,10 +135,7 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task HelloAsync()
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.Hello;
-            var command = new Message(type, @class, id);
+            var command = GetSystemCommand(SystemCommand.Hello);
             await WriteAsync(command);
         }
 
@@ -239,14 +143,11 @@ namespace BGLib.API
         /// This command reads the local device's public Bluetooth address.
         /// </summary>
         /// <returns></returns>
-        public async Task<BGAddress> GetAddressAsync()
+        public async Task<Address> GetAddressAsync()
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.AddressGet;
-            var command = new Message(type, @class, id);
+            var command = GetSystemCommand(SystemCommand.AddressGet);
             var response = await WriteAsync(command);
-            var address = new BGAddress(BGAddressType.Public, response.Payload);
+            var address = new Address(AddressType.Public, response.Payload);
             return address;
         }
 
@@ -254,19 +155,16 @@ namespace BGLib.API
         /// Read packet counters and resets them, also returns available packet buffers.
         /// </summary>
         /// <returns></returns>
-        public async Task<BGCounters> GetCountersAsync()
+        public async Task<Counters> GetCountersAsync()
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.GetCounters;
-            var command = new Message(type, @class, id);
+            var command = GetSystemCommand(SystemCommand.GetCounters);
             var response = await WriteAsync(command);
             var transmitted = response.Payload[0];
             var retransmitted = response.Payload[1];
             var receivedOK = response.Payload[2];
             var receivedError = response.Payload[3];
             var available = response.Payload[4];
-            var counters = new BGCounters(transmitted, retransmitted, receivedOK, receivedError, available);
+            var counters = new Counters(transmitted, retransmitted, receivedOK, receivedError, available);
             return counters;
         }
 
@@ -276,10 +174,7 @@ namespace BGLib.API
         /// <returns>Max supported connections</returns>
         public async Task<byte> GetMaxConnectionsAsync()
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.GetConnections;
-            var command = new Message(type, @class, id);
+            var command = GetSystemCommand(SystemCommand.GetConnections);
             var response = await WriteAsync(command);
             var maxConnections = response.Payload[0];
             return maxConnections;
@@ -289,12 +184,9 @@ namespace BGLib.API
         /// This command reads the local devices software and hardware versions.
         /// </summary>
         /// <returns></returns>
-        public async Task<BGVersion> GetVersionAsync()
+        public async Task<Version> GetVersionAsync()
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.GetInfo;
-            var command = new Message(type, @class, id);
+            var command = GetSystemCommand(SystemCommand.GetInfo);
             var response = await WriteAsync(command);
             var major = BitConverter.ToUInt16(response.Payload, 0);
             var minor = BitConverter.ToUInt16(response.Payload, 2);
@@ -303,7 +195,7 @@ namespace BGLib.API
             var linkLayer = BitConverter.ToUInt16(response.Payload, 8);
             var protocol = response.Payload[10];
             var hardware = response.Payload[11];
-            var version = new BGVersion(major, minor, patch, build, linkLayer, protocol, hardware);
+            var version = new Version(major, minor, patch, build, linkLayer, protocol, hardware);
             return version;
         }
 
@@ -313,22 +205,19 @@ namespace BGLib.API
         /// <param name="endpoint">Endpoint index to send data to</param>
         /// <param name="data">data to send</param>
         /// <returns></returns>
-        public async Task WriteEndPointAsync(BGEndpoint endpoint, byte[] data)
+        public async Task WriteEndPointAsync(Endpoint endpoint, byte[] data)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.EndpointTX;
             var length = data.GetByteLength();
             var payload = new byte[2 + length];
             payload[0] = (byte)endpoint;
             payload[1] = length;
             Array.Copy(data, 0, payload, 2, length);
-            var command = new Message(type, @class, id, payload);
+            var command = GetSystemCommand(SystemCommand.EndpointTX, payload);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -349,20 +238,17 @@ namespace BGLib.API
         /// </param>
         /// <param name="type">Bluetooth address type</param>
         /// <returns></returns>
-        public async Task AppendWhitelistAsync(BGAddress address, BGAddressType addressType)
+        public async Task AppendWhitelistAsync(Address address, AddressType addressType)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.WhitelistAppend;
             var payload = new byte[7];
             Array.Copy(address.RawValue, payload, 6);
             payload[6] = (byte)addressType;
-            var command = new Message(type, @class, id, payload);
+            var command = GetSystemCommand(SystemCommand.WhitelistAppend, payload);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -385,20 +271,17 @@ namespace BGLib.API
         /// </param>
         /// <param name="type">Bluetooth address type</param>
         /// <returns></returns>
-        public async Task RemoveWhitelistAsync(BGAddress address, BGAddressType addressType)
+        public async Task RemoveWhitelistAsync(Address address, AddressType addressType)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.WhitelistRemove;
             var payload = new byte[7];
             Array.Copy(address.RawValue, payload, 6);
             payload[6] = (byte)addressType;
-            var command = new Message(type, @class, id, payload);
+            var command = GetSystemCommand(SystemCommand.WhitelistRemove, payload);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -414,10 +297,7 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task ClearWhitelistAsync()
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.WhitelistClear;
-            var command = new Message(type, @class, id);
+            var command = GetSystemCommand(SystemCommand.WhitelistClear);
             await WriteAsync(command);
         }
 
@@ -428,20 +308,17 @@ namespace BGLib.API
         /// <param name="endpoint">Endpoint index to read data from</param>
         /// <param name="size">Size of data to read</param>
         /// <returns></returns>
-        public async Task<byte[]> ReadEndpointAsync(BGEndpoint endpoint, byte size)
+        public async Task<byte[]> ReadEndpointAsync(Endpoint endpoint, byte size)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.EndpointRX;
             var payload = new byte[2];
             payload[0] = (byte)endpoint;
             payload[1] = size;
-            var command = new Message(type, @class, id, payload);
+            var command = GetSystemCommand(SystemCommand.EndpointRX, payload);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
             var length = response.Payload[2];
@@ -484,21 +361,18 @@ namespace BGLib.API
         /// </para>
         /// </param>
         /// <returns></returns>
-        public async Task SetEndpointWatermarksAsync(BGEndpoint endpoint, byte receive, byte transmit)
+        public async Task SetEndpointWatermarksAsync(Endpoint endpoint, byte receive, byte transmit)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.EndpointSetWatermarks;
             var payload = new byte[3];
             payload[0] = (byte)endpoint;
             payload[1] = receive;
             payload[2] = transmit;
-            var command = new Message(type, @class, id, payload);
+            var command = GetSystemCommand(SystemCommand.EndpointSetWatermarks, payload);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -517,14 +391,11 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task DefineEncryptionKeyAsync(byte[] key)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.AesSetKey;
             var length = key.GetByteLength();
             var payload = new byte[1 + length];
             payload[0] = length;
             Array.Copy(key, payload, length);
-            var command = new Message(type, @class, id, null);
+            var command = GetSystemCommand(SystemCommand.AesSetKey, payload);
             await WriteAsync(command);
         }
 
@@ -548,14 +419,11 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task<byte[]> EncryptAsync(byte[] data)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.AesEncrypt;
             var length = data.GetByteLength();
             var payload = new byte[1 + length];
             payload[0] = length;
             Array.Copy(data, payload, length);
-            var command = new Message(type, @class, id, null);
+            var command = GetSystemCommand(SystemCommand.AesEncrypt, payload);
             var response = await WriteAsync(command);
             var encryptedLength = response.Payload[0];
             var encrypted = new byte[encryptedLength];
@@ -583,14 +451,11 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task<byte[]> DecryptAsync(byte[] data)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.AesDecrypt;
             var length = data.GetByteLength();
             var payload = new byte[1 + length];
             payload[0] = length;
             Array.Copy(data, payload, length);
-            var command = new Message(type, @class, id, null);
+            var command = GetSystemCommand(SystemCommand.AesDecrypt, payload);
             var response = await WriteAsync(command);
             var decryptedLength = response.Payload[0];
             var decrypted = new byte[decryptedLength];
@@ -604,15 +469,12 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task<bool> GetUsbEnumeratedAsync()
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.UsbEnumerationStatusGet;
-            var command = new Message(type, @class, id);
+            var command = GetSystemCommand(SystemCommand.UsbEnumerationStatusGet);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
             var enumerated = response.Payload[2] == 1;
@@ -623,12 +485,9 @@ namespace BGLib.API
         /// This command returns CRC-16 (polynomial X + X + X + 1) from bootloader. 
         /// </summary>
         /// <returns></returns>
-        public async Task<ushort> GetBootloaderCrcAsync()
+        public async Task<ushort> GetBootloaderAsync()
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.GetBootloader;
-            var command = new Message(type, @class, id);
+            var command = GetSystemCommand(SystemCommand.GetBootloader);
             var response = await WriteAsync(command);
             var crc = BitConverter.ToUInt16(response.Payload, 0);
             return crc;
@@ -648,27 +507,116 @@ namespace BGLib.API
         /// </summary>
         /// <param name="mode">Whether or not to boot into DFU mode.</param>
         /// <param name="delay">Delay reset in milliseconds</param>
-        public void DelayReset(BGBootMode mode, ushort delay)
+        public void DelayReset(BootMode mode, ushort delay)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.System;
-            var id = (byte)SystemCommand.DelayReset;
-            var delayArray = BitConverter.GetBytes(delay);
+            var delayValue = BitConverter.GetBytes(delay);
             var payload = new byte[3];
             payload[0] = (byte)mode;
-            Array.Copy(delayArray, 0, payload, 1, 2);
-            var command = new Message(type, @class, id, payload);
-            var data = command.ToBytes();
-            _serial.Write(data, 0, data.Length);
+            Array.Copy(delayValue, 0, payload, 1, 2);
+            var command = GetSystemCommand(SystemCommand.DelayReset, payload);
+            Write(command);
         }
 
         #endregion
 
         #region Commands - Flash
 
+        private Message GetFlashCommand(PersistentStoreCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.PersistentStore, id, payload);
+        }
+
+        /// <summary>
+        /// This command defragments the Persistent Store.
+        /// </summary>
+        /// <returns></returns>
+        public async Task DefragAsync()
+        {
+            var command = GetFlashCommand(PersistentStoreCommand.PSDefrag);
+            await WriteAsync(command);
+        }
+
+        /// <summary>
+        /// This command dumps all Persistent Store keys.
+        /// </summary>
+        /// <returns></returns>
+        public async Task DumpAsync()
+        {
+            var command = GetFlashCommand(PersistentStoreCommand.PSDump);
+            await WriteAsync(command);
+        }
+
+        /// <summary>
+        /// <para>
+        /// This command erases all Persistent Store keys.
+        /// </para>
+        /// <para>
+        /// The software needs to be restarted after using this command. During the reset the device will generate
+        /// missing encryption keys and update bonding cache.
+        /// </para>
+        /// </summary>
+        /// <returns></returns>
+        public async Task EraseAllAsync()
+        {
+            var command = GetFlashCommand(PersistentStoreCommand.PSEraseAll);
+            await WriteAsync(command);
+        }
+
+        /// <summary>
+        /// This command saves a Persistent Store (PS) key to the local device. The maximum size of a single PS-key is
+        /// 32 bytes and a total of 128 keys are available.
+        /// </summary>
+        /// <param name="key">
+        /// <para>Key to save.</para>
+        /// <para>Values: 0x8000 to 0x807F can be used for persistent storage of user data</para>
+        /// </param>
+        /// <param name="value">Value of the key</param>
+        /// <returns></returns>
+        public async Task SaveAsync(ushort key, byte[] value)
+        {
+            if (key < 0x8000 || key > 0x807F)
+            {
+                var paramName = nameof(key);
+                throw new ArgumentOutOfRangeException(paramName);
+            }
+            var keyValue = BitConverter.GetBytes(key);
+            var length = value.GetByteLength();
+            var payload = new byte[2 + length];
+            Array.Copy(keyValue, payload, 2);
+            Array.Copy(value, 0, payload, 2, length);
+            var command = GetFlashCommand(PersistentStoreCommand.PSSave, payload);
+            var response = await WriteAsync(command);
+            var errorCode = BitConverter.ToUInt16(response.Payload, 0);
+            if (errorCode != 0)
+            {
+                var message = BGUtil.GetMessage(errorCode);
+                throw new BGException(message);
+            }
+        }
+
+        public async Task LoadAsync(ushort key)
+        {
+
+        }
+
+        public async Task EraseAsync() { }
+
+        public async Task ErasePageAsync() { }
+
+        public async Task WriteDataAsync() { }
+
+        public async Task ReadDataAsync() { }
+
         #endregion
 
         #region Commands - Attribute Client
+
+        private Message GetAttributeClientCommand(AttributeClientCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.AttributeClient, id, payload);
+        }
 
         /// <summary>
         /// <para>
@@ -687,9 +635,6 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task FindByTypeValueAsync(byte connection, ushort start, ushort end, ushort uuid, byte[] value)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.FindByTypeValue;
             var startArray = BitConverter.GetBytes(start);
             var endArray = BitConverter.GetBytes(end);
             var uuidArray = BitConverter.GetBytes(uuid);
@@ -699,13 +644,13 @@ namespace BGLib.API
             Array.Copy(endArray, 0, payload, 3, 2);
             Array.Copy(uuidArray, 0, payload, 5, 2);
             Array.Copy(value, 0, payload, 7, value.Length);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.FindByTypeValue, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -731,9 +676,6 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task ReadByGroupTypeAsync(byte connection, ushort start, ushort end, byte[] uuid)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.ReadByGroupType;
             var startArray = BitConverter.GetBytes(start);
             var endArray = BitConverter.GetBytes(end);
             var payload = new byte[5 + uuid.Length];
@@ -741,13 +683,13 @@ namespace BGLib.API
             Array.Copy(startArray, 0, payload, 1, 2);
             Array.Copy(endArray, 0, payload, 3, 2);
             Array.Copy(uuid, 0, payload, 5, uuid.Length);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.ReadByGroupType, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -768,9 +710,6 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task ReadByTypeAsync(byte connection, ushort start, ushort end, byte[] uuid)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.ReadByType;
             var startArray = BitConverter.GetBytes(start);
             var endArray = BitConverter.GetBytes(end);
             var payload = new byte[5 + uuid.Length];
@@ -778,13 +717,13 @@ namespace BGLib.API
             Array.Copy(startArray, 0, payload, 1, 2);
             Array.Copy(endArray, 0, payload, 3, 2);
             Array.Copy(uuid, 0, payload, 5, uuid.Length);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.ReadByType, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -798,22 +737,19 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task FindInformationAsync(byte connection, ushort start, ushort end)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.FindInformation;
             var startArray = BitConverter.GetBytes(start);
             var endArray = BitConverter.GetBytes(end);
             var payload = new byte[5];
             payload[0] = connection;
             Array.Copy(startArray, 0, payload, 1, 2);
             Array.Copy(endArray, 0, payload, 3, 2);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.FindInformation, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -832,20 +768,17 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task ReadByHandleAsync(byte connection, ushort handle)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.ReadByHandle;
             var handleArray = BitConverter.GetBytes(handle);
             var payload = new byte[3];
             payload[0] = connection;
             Array.Copy(handleArray, 0, payload, 1, 2);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.ReadByHandle, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -873,21 +806,18 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task AttributeWriteAsync(byte connection, ushort handle, byte[] data)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.AttributeWrite;
             var attributeArray = BitConverter.GetBytes(handle);
             var payload = new byte[3 + data.Length];
             payload[0] = connection;
             Array.Copy(attributeArray, 0, payload, 1, 2);
             Array.Copy(data, 0, payload, 3, data.Length);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.AttributeWrite, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -911,21 +841,18 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task WriteCommandAsync(byte connection, ushort handle, byte[] data)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.WriteCommand;
             var attributeArray = BitConverter.GetBytes(handle);
             var payload = new byte[3 + data.Length];
             payload[0] = connection;
             Array.Copy(attributeArray, 0, payload, 1, 2);
             Array.Copy(data, 0, payload, 3, data.Length);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.WriteCommand, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -946,16 +873,13 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task IndicateConfirmAsync(byte connection)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.IndicateConfirm;
             var payload = new[] { connection };
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.IndicateConfirm, payload);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -976,20 +900,17 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task ReadLongAsync(byte connection, ushort handle)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.ReadLong;
             var handleArray = BitConverter.GetBytes(handle);
             var payload = new byte[3];
             payload[0] = connection;
             Array.Copy(handleArray, 0, payload, 1, 2);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.ReadLong, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -1036,9 +957,6 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task PrepareWriteAsync(byte connection, ushort handle, ushort offset, byte[] data)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.PrepareWirte;
             var handleArray = BitConverter.GetBytes(handle);
             var offsetArray = BitConverter.GetBytes(offset);
             var payload = new byte[5 + data.Length];
@@ -1046,13 +964,13 @@ namespace BGLib.API
             Array.Copy(handleArray, 0, payload, 1, 2);
             Array.Copy(offsetArray, 0, payload, 3, 2);
             Array.Copy(data, 0, payload, 5, data.Length);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.PrepareWirte, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -1069,17 +987,14 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task ExecuteWriteAsync(byte connection, byte commit)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.ExecuteWrite;
             var payload = new[] { connection, commit };
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.ExecuteWrite, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -1092,19 +1007,16 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task ReadMultipleAsync(byte connection, byte[] handles)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.AttributeClient;
-            var id = (byte)AttributeClientCommand.ReadMultiple;
             var payload = new byte[1 + handles.Length];
             payload[0] = connection;
             Array.Copy(handles, 0, payload, 1, handles.Length);
-            var command = new Message(type, @class, id, payload);
+            var command = GetAttributeClientCommand(AttributeClientCommand.ReadMultiple, payload);
             var response = await WriteAsync(command);
             //var connection = response.Payload[0];
             var errorCode = BitConverter.ToUInt16(response.Payload, 1);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -1112,6 +1024,12 @@ namespace BGLib.API
         #endregion
 
         #region Commands - Generic Access Profile
+
+        private Message GetGenericAccessProfileCommand(GenericAccessProfileCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.GenericAccessProfile, id, payload);
+        }
 
         /// <summary>
         /// This command sets the scan parameters which affect how other Bluetooth Smart devices are discovered. See
@@ -1178,21 +1096,18 @@ namespace BGLib.API
                 var paramName = nameof(window);
                 throw new ArgumentOutOfRangeException(paramName);
             }
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.GenericAccessProfile;
-            var id = (byte)GenericAccessProfileCommand.SetScanParameters;
-            var intervalBytes = BitConverter.GetBytes(interval);
-            var windowBytes = BitConverter.GetBytes(window);
+            var intervalValue = BitConverter.GetBytes(interval);
+            var windowValue = BitConverter.GetBytes(window);
             var payload = new byte[5];
-            Array.Copy(intervalBytes, 0, payload, 0, 2);
-            Array.Copy(windowBytes, 0, payload, 2, 2);
+            Array.Copy(intervalValue, 0, payload, 0, 2);
+            Array.Copy(windowValue, 0, payload, 2, 2);
             payload[4] = active ? (byte)0x01 : (byte)0x00;
-            var command = new Message(type, @class, id, payload);
+            var command = GetGenericAccessProfileCommand(GenericAccessProfileCommand.SetScanParameters, payload);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -1203,18 +1118,16 @@ namespace BGLib.API
         /// </summary>
         /// <param name="mode">GAP Discover modes</param>
         /// <returns></returns>
-        public async Task StartDiscoveryAsync(BGDiscoverMode mode = BGDiscoverMode.Observation)
+        public async Task StartDiscoveryAsync(DiscoverMode mode = DiscoverMode.Observation)
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.GenericAccessProfile;
-            var id = (byte)GenericAccessProfileCommand.Discover;
-            var payload = new[] { (byte)mode };
-            var command = new Message(type, @class, id, payload);
+            var modeValue = (byte)mode;
+            var payload = new[] { modeValue };
+            var command = GetGenericAccessProfileCommand(GenericAccessProfileCommand.Discover, payload);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -1225,15 +1138,12 @@ namespace BGLib.API
         /// <returns></returns>
         public async Task StopDiscoveryAsync()
         {
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.GenericAccessProfile;
-            var id = (byte)GenericAccessProfileCommand.EndProcedure;
-            var command = new Message(type, @class, id);
+            var command = GetGenericAccessProfileCommand(GenericAccessProfileCommand.EndProcedure);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
         }
@@ -1314,7 +1224,7 @@ namespace BGLib.API
         /// </para>
         /// </param>
         /// <returns></returns>
-        public async Task<byte> ConnectAsync(BGAddress address, ushort interval = 60, ushort timeout = 100, ushort latency = 0)
+        public async Task<byte> ConnectAsync(Address address, ushort interval = 60, ushort timeout = 100, ushort latency = 0)
         {
             if (interval < 6 || interval > 3200)
             {
@@ -1331,9 +1241,6 @@ namespace BGLib.API
                 var paramName = nameof(latency);
                 throw new ArgumentOutOfRangeException(paramName);
             }
-            var type = (byte)MessageType.Command;
-            var @class = (byte)MessageClass.GenericAccessProfile;
-            var id = (byte)GenericAccessProfileCommand.ConnectDirect;
             var addressBytes = address.RawValue;
             var intervalBytes = BitConverter.GetBytes(interval);
             var timeoutBytes = BitConverter.GetBytes(timeout);
@@ -1345,12 +1252,12 @@ namespace BGLib.API
             Array.Copy(intervalBytes, 0, payload, 9, 2);
             Array.Copy(timeoutBytes, 0, payload, 11, 2);
             Array.Copy(latencyBytes, 0, payload, 13, 2);
-            var command = new Message(type, @class, id, payload);
+            var command = GetGenericAccessProfileCommand(GenericAccessProfileCommand.ConnectDirect, payload);
             var response = await WriteAsync(command);
             var errorCode = BitConverter.ToUInt16(response.Payload, 0);
             if (errorCode != 0)
             {
-                var message = GetMessage(errorCode);
+                var message = BGUtil.GetMessage(errorCode);
                 throw new BGException(message);
             }
             var connection = response.Payload[2];
@@ -1369,20 +1276,20 @@ namespace BGLib.API
         /// This event is not sent over USB interface.
         /// </para>
         /// </summary>
-        public event EventHandler<BGVersionEventArgs> SystemBoot;
+        public event EventHandler<VersionEventArgs> SystemBoot;
         /// <summary>
         /// This event is generated if the receive (incoming) buffer of the endpoint has been filled with a number of bytes
         /// equal or higher than the value defined by the command Endpoint Set Watermarks. Data from the receive buffer
         /// can then be read(and consequently cleared) with the command Endpoint Rx.
         /// </summary>
-        public event EventHandler<BGWatermarkEventArgs> EndpointWatermarkReceived;
+        public event EventHandler<WatermarkEventArgs> EndpointWatermarkReceived;
         /// <summary>
         /// This event is generated when the transmit (outgoing) buffer of the endpoint has free space for a number of
         /// bytes equal or higher than the value defined by the command Endpoint Set Watermarks.When there is enough
         /// free space, data can be sent out of the endpoint by the command Endpoint Tx.
         /// </summary>
-        public event EventHandler<BGWatermarkEventArgs> EndpointWatermarkWritten;
-        public event EventHandler<BGScriptFailureEventArgs> ScriptFailed;
+        public event EventHandler<WatermarkEventArgs> EndpointWatermarkWritten;
+        public event EventHandler<ScriptFailureEventArgs> ScriptFailed;
         /// <summary>
         /// <para>
         /// This error is produced when no valid license key found form the Bluetooth Low Energy hardware. When
@@ -1393,12 +1300,12 @@ namespace BGLib.API
         /// </para>
         /// </summary>
         public event EventHandler NoLicenseKey;
-        public event EventHandler<BGErrorEventArgs> ProtocolError;
+        public event EventHandler<ErrorEventArgs> ProtocolError;
         /// <summary>
         /// Event is generated when USB enumeration status has changed. This event can be triggered by plugging
         /// module to USB host port or by USB device re-enumeration on host machine.
         /// </summary>
-        public event EventHandler<BGUsbEnumeratedEventArgs> UsbEnumeratedChanged;
+        public event EventHandler<UsbEnumeratedEventArgs> UsbEnumeratedChanged;
 
         private void OnSystemEventAnalyzed(Message message)
         {
@@ -1414,24 +1321,24 @@ namespace BGLib.API
                         var linkLayer = BitConverter.ToUInt16(message.Payload, 8);
                         var protocol = message.Payload[10];
                         var hardware = message.Payload[11];
-                        var version = new BGVersion(major, minor, patch, build, linkLayer, protocol, hardware);
-                        var eventArgs = new BGVersionEventArgs(version);
+                        var version = new Version(major, minor, patch, build, linkLayer, protocol, hardware);
+                        var eventArgs = new VersionEventArgs(version);
                         SystemBoot?.Invoke(this, eventArgs);
                         break;
                     }
                 case SystemEvent.EndpointWatermarkRX:
                     {
-                        var endpoint = (BGEndpoint)message.Payload[0];
+                        var endpoint = (Endpoint)message.Payload[0];
                         var size = message.Payload[1];
-                        var eventArgs = new BGWatermarkEventArgs(endpoint, size);
+                        var eventArgs = new WatermarkEventArgs(endpoint, size);
                         EndpointWatermarkReceived?.Invoke(this, eventArgs);
                         break;
                     }
                 case SystemEvent.EndpointWatermarkTX:
                     {
-                        var endpoint = (BGEndpoint)message.Payload[0];
+                        var endpoint = (Endpoint)message.Payload[0];
                         var size = message.Payload[1];
-                        var eventArgs = new BGWatermarkEventArgs(endpoint, size);
+                        var eventArgs = new WatermarkEventArgs(endpoint, size);
                         EndpointWatermarkWritten?.Invoke(this, eventArgs);
                         break;
                     }
@@ -1439,7 +1346,7 @@ namespace BGLib.API
                     {
                         var address = BitConverter.ToUInt16(message.Payload, 0);
                         var errorCode = BitConverter.ToUInt16(message.Payload, 2);
-                        var eventArgs = new BGScriptFailureEventArgs(address, errorCode);
+                        var eventArgs = new ScriptFailureEventArgs(address, errorCode);
                         ScriptFailed?.Invoke(this, eventArgs);
                         break;
                     }
@@ -1451,14 +1358,14 @@ namespace BGLib.API
                 case SystemEvent.ProtocolError:
                     {
                         var errorCode = BitConverter.ToUInt16(message.Payload, 0);
-                        var eventArgs = new BGErrorEventArgs(errorCode);
+                        var eventArgs = new ErrorEventArgs(errorCode);
                         ProtocolError?.Invoke(this, eventArgs);
                         break;
                     }
                 case SystemEvent.UsbEnumerated:
                     {
                         var enumerated = message.Payload[0] == 1;
-                        var eventArgs = new BGUsbEnumeratedEventArgs(enumerated);
+                        var eventArgs = new UsbEnumeratedEventArgs(enumerated);
                         UsbEnumeratedChanged?.Invoke(this, eventArgs);
                         break;
                     }
@@ -1486,7 +1393,7 @@ namespace BGLib.API
         /// (the remote device).
         /// </para>
         /// </summary>
-        public event EventHandler<BGAttributeEventArgs> Indicated;
+        public event EventHandler<AttributeEventArgs> Indicated;
         /// <summary>
         /// <para>
         /// This event is produced at the GATT client when an attribute protocol event is completed a and new operation
@@ -1525,7 +1432,7 @@ namespace BGLib.API
                     {
                         var connection = message.Payload[0];
                         var attribute = BitConverter.ToUInt16(message.Payload, 1);
-                        var eventArgs = new BGAttributeEventArgs(connection, attribute);
+                        var eventArgs = new AttributeEventArgs(connection, attribute);
                         Indicated?.Invoke(this, eventArgs);
                         break;
                     }
@@ -1588,7 +1495,7 @@ namespace BGLib.API
 
         #region Events
 
-        public event EventHandler<BGDiscoveryEventArgs> Discovered;
+        public event EventHandler<DiscoveryEventArgs> Discovered;
 
         private void OnDeviceFirmwareUpgradeEventAnalyzed(Message message)
         {
@@ -1608,27 +1515,27 @@ namespace BGLib.API
                 case GenericAccessProfileEvent.ScanResponse:
                     {
                         var rssi = (sbyte)message.Payload[0];
-                        var type = (BGDiscoveryType)message.Payload[1];
+                        var type = (DiscoveryType)message.Payload[1];
                         //var rawValue = new byte[6];
                         //Array.Copy(message.Payload, 2, rawValue, 0, rawValue.Length);
                         var rawValue = message.Payload.Skip(2).Take(6).ToArray();
-                        var addressType = (BGAddressType)message.Payload[8];
-                        var address = new BGAddress(addressType, rawValue);
+                        var addressType = (AddressType)message.Payload[8];
+                        var address = new Address(addressType, rawValue);
                         //var bond = message.Payload[9];
                         var dataLength = message.Payload[10];
                         var data = message.Payload.Skip(11).Take(dataLength).ToArray();
-                        var advertisements = new List<BGAdvertisement>();
+                        var advertisements = new List<Advertisement>();
                         for (int i = 0; i < data.Length; i++)
                         {
                             var advertisementLength = data[i];
-                            var advertisementType = (BGAdvertisementType)data[i + 1];
+                            var advertisementType = (AdvertisementType)data[i + 1];
                             var advertisementValue = data.Skip(i + 2).Take(advertisementLength - 1).ToArray();
-                            var advertisement = new BGAdvertisement(advertisementType, advertisementValue);
+                            var advertisement = new Advertisement(advertisementType, advertisementValue);
                             advertisements.Add(advertisement);
                             i += advertisementLength;
                         }
-                        var discovery = new BGDiscovery(rssi, type, address, advertisements);
-                        var eventArgs = new BGDiscoveryEventArgs(discovery);
+                        var discovery = new Discovery(rssi, type, address, advertisements);
+                        var eventArgs = new DiscoveryEventArgs(discovery);
                         Discovered?.Invoke(this, eventArgs);
                         break;
                     }
@@ -1661,52 +1568,6 @@ namespace BGLib.API
         private void OnPersistentStoreEventAnalyzed(Message message)
         {
             throw new NotImplementedException();
-        }
-
-        private void OnPinChanged(object sender, SerialPinChangedEventArgs e)
-        {
-
-        }
-
-        private void OnErrorReceived(object sender, SerialErrorReceivedEventArgs e)
-        {
-
-        }
-
-        #endregion
-
-        #region IDisposable
-
-        private bool _disposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    // TODO: 释放托管状态(托管对象)
-                    _serial.Dispose();
-                }
-
-                // TODO: 释放未托管的资源(未托管的对象)并替代终结器
-                // TODO: 将大型字段设置为 null
-                _disposed = true;
-            }
-        }
-
-        // // TODO: 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器
-        // ~BGAPI()
-        // {
-        //     // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
 
         #endregion

@@ -1,8 +1,8 @@
 ﻿namespace BGLib.API
 {
-    public class BGVersion
+    public class Version
     {
-        public BGVersion(ushort major, ushort minor, ushort patch, ushort build, ushort linkLayer, byte protocol, byte hardware)
+        public Version(ushort major, ushort minor, ushort patch, ushort build, ushort linkLayer, byte protocol, byte hardware)
         {
             Major = major;
             Minor = minor;

@@ -6,7 +6,7 @@ namespace BGLib.WPF.ViewModels
 {
     class DiscoveryViewModel : BindableBase
     {
-        public BGAddress Address { get; }
+        public Address Address { get; }
 
         string _name;
         public string Name
@@ -15,15 +15,15 @@ namespace BGLib.WPF.ViewModels
             set => SetProperty(ref _name, value);
         }
 
-        BGDiscoveryType _type;
-        public BGDiscoveryType Type
+        DiscoveryType _type;
+        public DiscoveryType Type
         {
             get => _type;
             set => SetProperty(ref _type, value);
         }
 
-        IList<BGAdvertisement> _advertisements;
-        public IList<BGAdvertisement> Advertisements
+        IList<Advertisement> _advertisements;
+        public IList<Advertisement> Advertisements
         {
             get => _advertisements;
             set => SetProperty(ref _advertisements, value);
@@ -36,7 +36,7 @@ namespace BGLib.WPF.ViewModels
             set => SetProperty(ref _rssi, value);
         }
 
-        public DiscoveryViewModel(BGDiscovery discovery)
+        public DiscoveryViewModel(Discovery discovery)
         {
             Address = discovery.Address;
             Name = discovery.Name;

@@ -2,7 +2,7 @@
 
 namespace BGLib.API
 {
-    public class BGWatermarkEventArgs : EventArgs
+    public class WatermarkEventArgs : EventArgs
     {
         /// <summary>
         /// <para>
@@ -12,7 +12,7 @@ namespace BGLib.API
         /// Endpoint index where data was sent.
         /// </para>
         /// </summary>
-        public BGEndpoint Endpoint { get; }
+        public Endpoint Endpoint { get; }
         /// <summary>
         /// <para>
         /// Received data size
@@ -23,7 +23,7 @@ namespace BGLib.API
         /// </summary>
         public byte Size { get; }
 
-        public BGWatermarkEventArgs(BGEndpoint endpoint, byte size)
+        public WatermarkEventArgs(Endpoint endpoint, byte size)
         {
             Endpoint = endpoint;
             Size = size;

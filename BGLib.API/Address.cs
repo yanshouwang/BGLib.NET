@@ -3,13 +3,13 @@ using System.Linq;
 
 namespace BGLib.API
 {
-    public class BGAddress
+    public class Address
     {
-        public BGAddressType Type { get; }
+        public AddressType Type { get; }
         public byte[] RawValue { get; }
         public string Value { get; set; }
 
-        public BGAddress(BGAddressType type, byte[] rawValue)
+        public Address(AddressType type, byte[] rawValue)
         {
             if (rawValue == null || rawValue.Length != 6)
             {
@@ -31,7 +31,7 @@ namespace BGLib.API
 
         public override bool Equals(object obj)
         {
-            return obj is BGAddress address && address.Value == Value;
+            return obj is Address address && address.Value == Value;
         }
 
         public override int GetHashCode()

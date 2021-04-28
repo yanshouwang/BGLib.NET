@@ -1,6 +1,6 @@
 ﻿namespace BGLib.API
 {
-    public enum BGDiscoveryType : byte
+    public enum DiscoveryType : byte
     {
         Connectable = 0,
         NonConnectable = 2,

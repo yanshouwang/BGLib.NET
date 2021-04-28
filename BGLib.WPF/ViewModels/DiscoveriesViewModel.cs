@@ -15,6 +15,11 @@ namespace BGLib.WPF.ViewModels
         public DiscoveriesViewModel(IRegionManager regionManager)
             : base(regionManager)
         {
+            //string portName,
+            //int baudRate = 256000,
+            //BGParity parity = BGParity.None,
+            //int dataBits = 8,
+            //BGStopBits stopBits = BGStopBits.One
             _serial = new BGSerialPort("COM6");
             _serial.Discovered += OnDiscovered;
 
@@ -23,7 +28,7 @@ namespace BGLib.WPF.ViewModels
             _serial.Open();
         }
 
-        private void OnDiscovered(object sender, BGDiscoveryEventArgs e)
+        private void OnDiscovered(object sender, DiscoveryEventArgs e)
         {
             var discovery = Discoveries.FirstOrDefault(i => i.Address.Value == e.Discovery.Address.Value);
             if (discovery == null)

@@ -14,6 +14,7 @@
     <RepositoryType>Git</RepositoryType>
     <PackageTags>BGLib BGAPI BLED112</PackageTags>
     <PackageReleaseNotes>BGLib for .NET</PackageReleaseNotes>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

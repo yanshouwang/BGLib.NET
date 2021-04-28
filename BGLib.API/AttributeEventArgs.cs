@@ -2,12 +2,12 @@
 
 namespace BGLib.API
 {
-    public class BGAttributeEventArgs : EventArgs
+    public class AttributeEventArgs : EventArgs
     {
         public byte Connection { get; }
         public ushort Attribute { get; }
 
-        public BGAttributeEventArgs(byte connection, ushort attribute)
+        public AttributeEventArgs(byte connection, ushort attribute)
         {
             Connection = connection;
             Attribute = attribute;

@@ -3,7 +3,7 @@
     /// <summary>
     /// Data Endpoints used in data routing and interface configuration
     /// </summary>
-    public enum BGEndpoint : byte
+    public enum Endpoint : byte
     {
         /// <summary>
         /// Command Parser

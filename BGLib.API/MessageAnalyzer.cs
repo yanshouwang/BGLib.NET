@@ -6,7 +6,7 @@ namespace BGLib.API
 {
     internal class MessageAnalyzer
     {
-        public event EventHandler<MessageEventArgs> MessageAnalyzed;
+        public event EventHandler<MessageEventArgs> Analyzed;
 
         private const ushort MAXIMUM = 64;
 
@@ -243,9 +243,17 @@ namespace BGLib.API
             _class = null;
             _id = null;
             _payload.Clear();
-            var message = new Message(type, @class, id, payload);
+            Message message;
+            if (type == (byte)MessageType.Response)
+            {
+                message = new Response(@class, id, payload);
+            }
+            else
+            {
+                message = new Event(@class, id, payload);
+            }
             var e = new MessageEventArgs(message);
-            MessageAnalyzed?.Invoke(this, e);
+            Analyzed?.Invoke(this, e);
         }
     }
 }

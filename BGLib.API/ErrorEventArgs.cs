@@ -2,9 +2,9 @@
 
 namespace BGLib.API
 {
-    public class BGErrorEventArgs : EventArgs
+    public class ErrorEventArgs : EventArgs
     {
-        public BGErrorEventArgs(ushort errorCode)
+        public ErrorEventArgs(ushort errorCode)
         {
             ErrorCode = errorCode;
         }

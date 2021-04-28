@@ -3,7 +3,7 @@
     /// <summary>
     /// Boot mode
     /// </summary>
-    public enum BGBootMode : byte
+    public enum BootMode : byte
     {
         /// <summary>
         /// boot to main program

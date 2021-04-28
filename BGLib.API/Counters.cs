@@ -1,8 +1,8 @@
 ﻿namespace BGLib.API
 {
-    public class BGCounters
+    public class Counters
     {
-        public BGCounters(byte transmitted, byte retransmitted, byte receivedOK, byte receivedError, byte available)
+        public Counters(byte transmitted, byte retransmitted, byte receivedOK, byte receivedError, byte available)
         {
             Transmitted = transmitted;
             Retransmitted = retransmitted;

@@ -2,9 +2,9 @@
 
 namespace BGLib.API
 {
-    public class BGUsbEnumeratedEventArgs : EventArgs
+    public class UsbEnumeratedEventArgs : EventArgs
     {
-        public BGUsbEnumeratedEventArgs(bool enumerated)
+        public UsbEnumeratedEventArgs(bool enumerated)
         {
             Enumerated = enumerated;
         }

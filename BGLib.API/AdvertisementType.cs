@@ -1,6 +1,6 @@
 ﻿namespace BGLib.API
 {
-    public enum BGAdvertisementType : byte
+    public enum AdvertisementType : byte
     {
         /// <summary>
         /// Flags

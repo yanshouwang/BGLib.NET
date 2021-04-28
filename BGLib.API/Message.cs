@@ -42,7 +42,7 @@ namespace BGLib.API
             Payload = payload;
         }
 
-        public byte[] ToBytes()
+        public byte[] ToArray()
         {
             var bytes = new byte[Payload.Length + 4];
             // Bluetooth Smart is 0x0000 and `LENGTH_HIGH` is always 0x000.

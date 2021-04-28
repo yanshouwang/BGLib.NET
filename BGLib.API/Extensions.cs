@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BGLib.API
 {
-    internal static class Extension
+    internal static class Extensions
     {
         public static byte GetByteLength(this Array array)
         {

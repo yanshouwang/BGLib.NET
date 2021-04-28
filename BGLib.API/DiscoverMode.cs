@@ -1,6 +1,6 @@
 ﻿namespace BGLib.API
 {
-    public enum BGDiscoverMode : byte
+    public enum DiscoverMode : byte
     {
         /// <summary>
         /// Discover only limited discoverable devices, that is, Slaves which have

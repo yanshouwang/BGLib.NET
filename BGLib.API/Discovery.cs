@@ -5,23 +5,23 @@ using System.Text;
 
 namespace BGLib.API
 {
-    public class BGDiscovery
+    public class Discovery
     {
         public sbyte RSSI { get; }
-        public BGDiscoveryType Type { get; }
-        public BGAddress Address { get; }
-        public IList<BGAdvertisement> Advertisements { get; }
+        public DiscoveryType Type { get; }
+        public Address Address { get; }
+        public IList<Advertisement> Advertisements { get; }
         public string Name { get; }
 
-        public BGDiscovery(sbyte rssi, BGDiscoveryType type, BGAddress address, IList<BGAdvertisement> advertisements)
+        public Discovery(sbyte rssi, DiscoveryType type, Address address, IList<Advertisement> advertisements)
         {
             RSSI = rssi;
             Type = type;
             Address = address;
             Advertisements = advertisements;
             var advertisement = Advertisements.FirstOrDefault(i =>
-                i.Type == BGAdvertisementType.ShortenedLocalName ||
-                i.Type == BGAdvertisementType.CompleteLocalName);
+                i.Type == AdvertisementType.ShortenedLocalName ||
+                i.Type == AdvertisementType.CompleteLocalName);
             if (advertisement != null)
             {
                 Name = Encoding.UTF8.GetString(advertisement.Value);

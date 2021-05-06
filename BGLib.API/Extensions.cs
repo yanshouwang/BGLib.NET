@@ -4,6 +4,11 @@ namespace BGLib.API
 {
     internal static class Extensions
     {
+        public static string GetMessage(this ushort errorCode)
+        {
+            return Util.GetMessage(errorCode);
+        }
+
         public static byte GetByteLength(this Array array)
         {
             if (array.Length > byte.MaxValue)

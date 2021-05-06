@@ -29,7 +29,7 @@ namespace BGLib.API
         DelayReset = 0x14,
     }
 
-    internal enum PersistentStoreCommand : byte
+    internal enum PSCommand : byte
     {
         PSDefrag = 0x00,
         PSDump = 0x01,
@@ -40,22 +40,6 @@ namespace BGLib.API
         ErasePage = 0x06,
         WriteData = 0x07,
         ReadData = 0x08,
-    }
-
-    internal enum AttributeClientCommand : byte
-    {
-        FindByTypeValue = 0x00,
-        ReadByGroupType = 0x01,
-        ReadByType = 0x02,
-        FindInformation = 0x03,
-        ReadByHandle = 0x04,
-        AttributeWrite = 0x05,
-        WriteCommand = 0x06,
-        IndicateConfirm = 0x07,
-        ReadLong = 0x08,
-        PrepareWirte = 0x09,
-        ExecuteWrite = 0x0A,
-        ReadMultiple = 0x0B,
     }
 
     internal enum AttributeDatabaseCommand : byte
@@ -76,13 +60,42 @@ namespace BGLib.API
         VersionUpdate = 0x03,
         ChannelMapGet = 0x04,
         ChannelMapSet = 0x05,
-        FeaturesGet = 0x06,
+        //FeaturesGet = 0x06,
         GetStatus = 0x07,
-        RawTX = 0x08,
+        //RawTX = 0x08,
         SlaveLatencyDisable = 0x09,
     }
 
-    internal enum GenericAccessProfileCommand : byte
+    internal enum AttributeClientCommand : byte
+    {
+        FindByTypeValue = 0x00,
+        ReadByGroupType = 0x01,
+        ReadByType = 0x02,
+        FindInformation = 0x03,
+        ReadByHandle = 0x04,
+        AttributeWrite = 0x05,
+        WriteCommand = 0x06,
+        IndicateConfirm = 0x07,
+        ReadLong = 0x08,
+        PrepareWirte = 0x09,
+        ExecuteWrite = 0x0A,
+        ReadMultiple = 0x0B,
+    }
+
+    internal enum SMCommand : byte
+    {
+        EncryptStart = 0x00,
+        SetBondableMode = 0x01,
+        DeleteBonding = 0x02,
+        SetParameters = 0x03,
+        PasskeyEntry = 0x04,
+        GetBonds = 0x05,
+        SetOobData = 0x06,
+        WhitelistBonds = 0x07,
+        SetPairingDistributionKeys = 0x08,
+    }
+
+    internal enum GapCommand : byte
     {
         SetPrivacyFlags = 0x00,
         SetMode = 0x01,
@@ -111,14 +124,14 @@ namespace BGLib.API
         IOPortRead = 0x07,
         SpiConfig = 0x08,
         SpiTransfer = 0x09,
-        I2CRead = 0x0A,
-        I2CWrite = 0x0B,
+        I2cRead = 0x0A,
+        I2cWrite = 0x0B,
         SetTXPower = 0x0C,
         TimerComparator = 0x0D,
         IOPortIrqEnable = 0x0E,
         IOPortIrqDirection = 0x0F,
         AnalogComparatorEnable = 0x10,
-        AnalogCOmparatorRead = 0x11,
+        AnalogComparatorRead = 0x11,
         AnalogComparatorConfigIRQ = 0x12,
         SetRXGain = 0x13,
         UsbEnable = 0x14,
@@ -126,31 +139,18 @@ namespace BGLib.API
         GetTimestamp = 0x16,
     }
 
-    internal enum SecurityManagerCommand : byte
-    {
-        DeleteBonding = 0x02,
-        EncryptStart = 0x00,
-        GetBonds = 0x05,
-        PasskeyEntry = 0x04,
-        SetBondableMode = 0x01,
-        SetOobData = 0x06,
-        SetPairingDistributionKeys = 0x08,
-        SetParameters = 0x03,
-        WhitelistBonds = 0x07,
-    }
-
     internal enum TestingCommand : byte
     {
         PhyTX = 0x00,
         PhyRX = 0x01,
         PhyEnd = 0x02,
-        PhyReset = 0x03,
+        //PhyReset = 0x03,
         GetChannelMap = 0x04,
-        Debug = 0x05,
+        //Debug = 0x05,
         ChannelMode = 0x06,
     }
 
-    internal enum DeviceFirmwareUpgradeCommand : byte
+    internal enum DfuCommand : byte
     {
         Reset = 0x00,
         FlashSetAddress = 0x01,
@@ -174,20 +174,9 @@ namespace BGLib.API
         UsbEnumerated = 0x07,
     }
 
-    internal enum PersistentStoreEvent : byte
+    internal enum PSEvent : byte
     {
         PSKey = 0x00,
-    }
-
-    internal enum AttributeClientEvent : byte
-    {
-        Indicated = 0x00,
-        ProcedureCompleted = 0x01,
-        GroupFound = 0x02,
-        AttributeFound = 0x03,
-        FindInformationFound = 0x04,
-        AttributeValue = 0x05,
-        ReadMultipleResponse = 0x06,
     }
 
     internal enum AttributeDatabaseEvent : byte
@@ -202,14 +191,34 @@ namespace BGLib.API
         Status = 0x00,
         VersionInd = 0x01,
         FeatureInd = 0x02,
-        RawRX = 0x03,
+        //RawRX = 0x03,
         Disconnected = 0x04,
     }
 
-    internal enum GenericAccessProfileEvent : byte
+    internal enum AttributeClientEvent : byte
+    {
+        Indicated = 0x00,
+        ProcedureCompleted = 0x01,
+        GroupFound = 0x02,
+        //AttributeFound = 0x03,
+        FindInformationFound = 0x04,
+        AttributeValue = 0x05,
+        ReadMultipleResponse = 0x06,
+    }
+
+    internal enum SMEvent : byte
+    {
+        //SmpData = 0x00,
+        BondingFail = 0x01,
+        PassKeyDisplay = 0x02,
+        PasskeyRequest = 0x03,
+        BondStatus = 0x04,
+    }
+
+    internal enum GapEvent : byte
     {
         ScanResponse = 0x00,
-        ModeChanged = 0x01,
+        //ModeChanged = 0x01,
     }
 
     internal enum HardwareEvent : byte
@@ -221,159 +230,11 @@ namespace BGLib.API
         RadioError = 0x04,
     }
 
-    internal enum SecurityManagerEvent : byte
-    {
-        SmpData = 0x00,
-        BondingFail = 0x01,
-        PassKeyDisplay = 0x02,
-        PasskeyRequest = 0x03,
-        BondStatus = 0x04,
-    }
-
-    internal enum DeviceFirmwareUpgradeEvent : byte
+    internal enum DfuEvent : byte
     {
         Boot = 0x00,
     }
 
     #endregion
-
-    #region Attribute Client
-
-    internal enum AttributeValueType
-    {
-        Read,
-        Notify,
-        Indicate,
-        ReadByType,
-        ReadBlob,
-        IndicateRspReq,
-    }
-
-    #endregion
-
-    #region Attribute Database
-
-    internal enum AttributeChangeReason
-    {
-        WriteRequest,
-        WriteCommand,
-        WriteRequestUser,
-    }
-
-    internal enum AttributeStatusFlag
-    {
-        Notify,
-        Indicate,
-    }
-    #endregion
-
-    #region Connection
-
-    internal enum ConnectionStatusFlag
-    {
-        Connected,
-        Encrypted,
-        Completed,
-        ParametersChange,
-    }
-
-    #endregion
-
-    #region Generic Access Profile
-
-    internal enum AdFlag
-    {
-        LimitedDiscoverable = 0x01,
-        GeneralDiscoverable = 0x02,
-        BredrNotSupported = 0x04,
-        SimultaneousLEBredrCtrl = 0x10,
-        SimultaneousLEBredrHost = 0x20,
-        Mask = 0x1F,
-    }
-
-    internal enum AdvertisingPolicy
-    {
-        All,
-        WhitelistScan,
-        WhitelistConnect,
-        WhitelistAll,
-    }
-
-    internal enum GapConnectableMode
-    {
-        NonConnectable,
-        DirectedConnectable,
-        UndirectedConnectable,
-        ScannableNonConnectable,
-    }
-
-    internal enum GapDiscoverableMode
-    {
-        NonDiscoverable,
-        LimitedDiscoverable,
-        GeneralDiscoverable,
-        Broadcast,
-        UserData,
-        EnhancedBroadcasting = 0x80,
-    }
-
-    internal enum ScanHeaderFlag
-    {
-        AdvInd,
-        AdvDirectInd,
-        AdvNonconnInd,
-        ScanReq,
-        ScanRsp,
-        ConnectReq,
-        AdvDiscoverInd,
-    }
-
-    internal enum ScanPolicy
-    {
-        All,
-        Whitelist,
-    }
-
-    #endregion
-
-    #region Hardware
-
-    #endregion
-
-    #region Persistent Store
-
-    #endregion
-
-    #region Security Manager
-
-    [Flags]
-    internal enum BondingKey
-    {
-        LTK = 0x01,
-        PublicAddress = 0x02,
-        StaticAddress = 0x04,
-        IRK = 0x08,
-        EdivRand = 0x10,
-        CSRK = 0x20,
-        MasterId = 0x40,
-    }
-
-    internal enum SmpIOCapability
-    {
-        DisplayOnly,
-        DisplayYesNo,
-        KeyboardOnly,
-        NoInputNoOutput,
-        KeyboardDisplay,
-    }
-
-    #endregion
-
-    #region Testing
-
-    #endregion
-
-    #region DeviceFirmwareUpgrade
-
-    #endregion
 }
+

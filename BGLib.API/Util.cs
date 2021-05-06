@@ -2,10 +2,11 @@
 
 namespace BGLib.API
 {
-    public static class BGUtil
+    internal static class Util
     {
         private static readonly IDictionary<ushort, string> s_errors = new Dictionary<ushort, string>()
         {
+            [0x0000] = "The operation was successful.",
             // BGAPI Errors
             [0x0180] = "Command contained invalid parameter.",
             [0x0181] = "Device is in wrong state to receive command.",
@@ -74,6 +75,73 @@ namespace BGLib.API
             return s_errors.TryGetValue(errorCode, out var message)
                 ? message
                 : $"Unknown error with code: {errorCode}.";
+        }
+
+        public static Message GetCommand(MessageClass @class, byte id, byte[] payload = null)
+        {
+            var type = (byte)MessageType.Command;
+            var classValue = (byte)@class;
+            return new Message(type, classValue, id, payload);
+        }
+
+        public static Message GetSystemCommand(SystemCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.System, id, payload);
+        }
+
+        public static Message GetPSCommand(PSCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.PS, id, payload);
+        }
+
+        public static Message GetAttributeDatabaseCommand(AttributeDatabaseCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.AttributeDatabase, id, payload);
+        }
+
+        public static Message GetConnectionCommand(ConnectionCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.Connection, id, payload);
+        }
+
+        public static Message GetAttributeClientCommand(AttributeClientCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.AttributeClient, id, payload);
+        }
+
+        public static Message GetSMCommand(SMCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.SM, id, payload);
+        }
+
+        public static Message GetGapCommand(GapCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.GAP, id, payload);
+        }
+
+        public static Message GetHardwareCommand(HardwareCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.Hardware, id, payload);
+        }
+
+        public static Message GetTestingCommand(TestingCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.Testing, id, payload);
+        }
+
+        public static Message GetDfuCommand(DfuCommand command, byte[] payload = null)
+        {
+            var id = (byte)command;
+            return GetCommand(MessageClass.DFU, id, payload);
         }
     }
 }

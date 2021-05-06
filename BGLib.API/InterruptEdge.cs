@@ -1,17 +1,17 @@
 ﻿namespace BGLib.API
 {
     /// <summary>
-    /// Bluetooth address types
+    /// Interrupt sense for port.
     /// </summary>
-    public enum AddressType : byte
+    public enum InterruptEdge : byte
     {
         /// <summary>
-        /// Public Address
+        /// rising edge
         /// </summary>
-        Public = 0,
+        Rising = 0,
         /// <summary>
-        /// Random Address
+        /// falling edge
         /// </summary>
-        Random = 1,
+        Falling = 1,
     }
 }

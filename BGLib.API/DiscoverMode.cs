@@ -1,5 +1,8 @@
 ﻿namespace BGLib.API
 {
+    /// <summary>
+    /// GAP Discover modes
+    /// </summary>
     public enum DiscoverMode : byte
     {
         /// <summary>

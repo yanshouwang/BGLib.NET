@@ -22,27 +22,30 @@ namespace BGLib.API
             _payload = new List<byte>();
         }
 
-        public void Analyze(byte value)
+        public void Analyze(byte[] value)
         {
-            if (_type == null)
+            foreach (var byteValue in value)
             {
-                AnalyzeType(value);
-            }
-            else if (_length == null)
-            {
-                AnalyzeLength(value);
-            }
-            else if (_class == null)
-            {
-                AnalyzeClass(value);
-            }
-            else if (_id == null)
-            {
-                AnalyzeId(value);
-            }
-            else
-            {
-                AnalyzePayload(value);
+                if (_type == null)
+                {
+                    AnalyzeType(byteValue);
+                }
+                else if (_length == null)
+                {
+                    AnalyzeLength(byteValue);
+                }
+                else if (_class == null)
+                {
+                    AnalyzeClass(byteValue);
+                }
+                else if (_id == null)
+                {
+                    AnalyzeId(byteValue);
+                }
+                else
+                {
+                    AnalyzePayload(byteValue);
+                }
             }
         }
 
@@ -98,9 +101,9 @@ namespace BGLib.API
                                     enumType = typeof(SystemCommand);
                                     break;
                                 }
-                            case MessageClass.PersistentStore:
+                            case MessageClass.PS:
                                 {
-                                    enumType = typeof(PersistentStoreCommand);
+                                    enumType = typeof(PSCommand);
                                     break;
                                 }
                             case MessageClass.AttributeDatabase:
@@ -118,14 +121,14 @@ namespace BGLib.API
                                     enumType = typeof(AttributeClientCommand);
                                     break;
                                 }
-                            case MessageClass.SecurityManager:
+                            case MessageClass.SM:
                                 {
-                                    enumType = typeof(SecurityManagerCommand);
+                                    enumType = typeof(SMCommand);
                                     break;
                                 }
-                            case MessageClass.GenericAccessProfile:
+                            case MessageClass.GAP:
                                 {
-                                    enumType = typeof(GenericAccessProfileCommand);
+                                    enumType = typeof(GapCommand);
                                     break;
                                 }
                             case MessageClass.Hardware:
@@ -138,9 +141,9 @@ namespace BGLib.API
                                     enumType = typeof(TestingCommand);
                                     break;
                                 }
-                            case MessageClass.DeviceFirmwareUpgrade:
+                            case MessageClass.DFU:
                                 {
-                                    enumType = typeof(DeviceFirmwareUpgradeCommand);
+                                    enumType = typeof(DfuCommand);
                                     break;
                                 }
                             default:
@@ -159,9 +162,9 @@ namespace BGLib.API
                                     enumType = typeof(SystemEvent);
                                     break;
                                 }
-                            case MessageClass.PersistentStore:
+                            case MessageClass.PS:
                                 {
-                                    enumType = typeof(PersistentStoreEvent);
+                                    enumType = typeof(PSEvent);
                                     break;
                                 }
                             case MessageClass.AttributeDatabase:
@@ -179,14 +182,14 @@ namespace BGLib.API
                                     enumType = typeof(AttributeClientEvent);
                                     break;
                                 }
-                            case MessageClass.SecurityManager:
+                            case MessageClass.SM:
                                 {
-                                    enumType = typeof(SecurityManagerEvent);
+                                    enumType = typeof(SMEvent);
                                     break;
                                 }
-                            case MessageClass.GenericAccessProfile:
+                            case MessageClass.GAP:
                                 {
-                                    enumType = typeof(GenericAccessProfileEvent);
+                                    enumType = typeof(GapEvent);
                                     break;
                                 }
                             case MessageClass.Hardware:
@@ -199,9 +202,9 @@ namespace BGLib.API
                                     // Testing doesn't have events.
                                     break;
                                 }
-                            case MessageClass.DeviceFirmwareUpgrade:
+                            case MessageClass.DFU:
                                 {
-                                    enumType = typeof(DeviceFirmwareUpgradeEvent);
+                                    enumType = typeof(DfuEvent);
                                     break;
                                 }
                             default:
@@ -243,17 +246,9 @@ namespace BGLib.API
             _class = null;
             _id = null;
             _payload.Clear();
-            Message message;
-            if (type == (byte)MessageType.Response)
-            {
-                message = new Response(@class, id, payload);
-            }
-            else
-            {
-                message = new Event(@class, id, payload);
-            }
-            var e = new MessageEventArgs(message);
-            Analyzed?.Invoke(this, e);
+            var message = new Message(type, @class, id, payload);
+            var eventArgs = new MessageEventArgs(message);
+            Analyzed?.Invoke(this, eventArgs);
         }
     }
 }

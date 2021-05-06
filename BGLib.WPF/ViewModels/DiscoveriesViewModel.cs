@@ -2,30 +2,25 @@
 using Prism.Commands;
 using Prism.Regions;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
 
 namespace BGLib.WPF.ViewModels
 {
     class DiscoveriesViewModel : BaseViewModel
     {
-        private readonly BGSerialPort _serial;
+        private readonly BGAPI _bgAPI;
 
         public IList<DiscoveryViewModel> Discoveries { get; }
 
         public DiscoveriesViewModel(IRegionManager regionManager)
             : base(regionManager)
         {
-            //string portName,
-            //int baudRate = 256000,
-            //BGParity parity = BGParity.None,
-            //int dataBits = 8,
-            //BGStopBits stopBits = BGStopBits.One
-            _serial = new BGSerialPort("COM6");
-            _serial.Discovered += OnDiscovered;
-
             Discoveries = new SynchronizationObservableCollection<DiscoveryViewModel>();
-
-            _serial.Open();
+            var serial = new SerialPort("COM3", 256000, Parity.None, 8, StopBits.One);
+            var communicator = new SerialCommunicator(serial);
+            _bgAPI = new BGAPI(communicator);
+            _bgAPI.Discovered += OnDiscovered;
         }
 
         private void OnDiscovered(object sender, DiscoveryEventArgs e)
@@ -57,9 +52,6 @@ namespace BGLib.WPF.ViewModels
 
         public override void Destroy()
         {
-            _serial.Close();
-            _serial.Dispose();
-
             base.Destroy();
         }
 
@@ -69,7 +61,7 @@ namespace BGLib.WPF.ViewModels
 
         private async void ExecuteStartDiscoveryCommand()
         {
-            await _serial.StartDiscoveryAsync();
+            await _bgAPI.DiscoverAsync();
         }
 
         private DelegateCommand _stopDiscoveryCommand;
@@ -78,7 +70,7 @@ namespace BGLib.WPF.ViewModels
 
         private async void ExecuteStopDiscoveryCommand()
         {
-            await _serial.StopDiscoveryAsync();
+            await _bgAPI.EndAsync();
         }
 
         private DelegateCommand _clearDiscoveriesCommand;

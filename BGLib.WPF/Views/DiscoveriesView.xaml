@@ -51,7 +51,7 @@
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
-                <DataTemplate DataType="{x:Type lib:BGDiscovery}">
+                <DataTemplate DataType="{x:Type lib:Discovery}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

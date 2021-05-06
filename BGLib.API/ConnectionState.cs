@@ -7,7 +7,7 @@ namespace BGLib.API
     /// flags can be set at a time.If the bit is 1 the flag is active and if the bit is 0 the flag is inactive.
     /// </summary>
     [Flags]
-    public enum ConnectionStatus : byte
+    public enum ConnectionState : byte
     {
         /// <summary>
         /// This status flag tells the connection exists to a remote device.

@@ -3394,7 +3394,7 @@ namespace BGLib.API
         /// <summary>
         /// This event indicates the connection status and parameters.
         /// </summary>
-        public event EventHandler<ConnectionStatusEventArgs> ConnectionStatusNotified;
+        public event EventHandler<ConnectionStateEventArgs> ConnectionStateChanged;
         /// <summary>
         /// This event indicates the remote devices version.
         /// </summary>
@@ -3416,7 +3416,7 @@ namespace BGLib.API
                 case ConnectionEvent.Status:
                     {
                         var connection = @event.Payload[0];
-                        var status = (ConnectionStatus)@event.Payload[1];
+                        var status = (ConnectionState)@event.Payload[1];
                         var rawValue = new byte[6];
                         Array.Copy(@event.Payload, 2, rawValue, 0, 6);
                         var type = (AddressType)@event.Payload[8];
@@ -3425,8 +3425,8 @@ namespace BGLib.API
                         var latency = BitConverter.ToUInt16(@event.Payload, 13);
                         var bonding = @event.Payload[15];
                         var address = new Address(type, rawValue);
-                        var eventArgs = new ConnectionStatusEventArgs(connection, status, address, interval, timeout, latency, bonding);
-                        ConnectionStatusNotified?.Invoke(this, eventArgs);
+                        var eventArgs = new ConnectionStateEventArgs(connection, status, address, interval, timeout, latency, bonding);
+                        ConnectionStateChanged?.Invoke(this, eventArgs);
                         break;
                     }
                 case ConnectionEvent.VersionInd:

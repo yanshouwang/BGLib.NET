@@ -2,9 +2,9 @@
 
 namespace BGLib.API
 {
-    public class ConnectionStatusEventArgs : EventArgs
+    public class ConnectionStateEventArgs : EventArgs
     {
-        public ConnectionStatusEventArgs(byte connection, ConnectionStatus status, Address address, ushort interval, ushort timeout, ushort latency, byte bonding)
+        public ConnectionStateEventArgs(byte connection, ConnectionState status, Address address, ushort interval, ushort timeout, ushort latency, byte bonding)
         {
             Connection = connection;
             Status = status;
@@ -22,7 +22,7 @@ namespace BGLib.API
         /// <summary>
         /// Connection status flags use connstatus-enumerator
         /// </summary>
-        public ConnectionStatus Status { get; }
+        public ConnectionState Status { get; }
         /// <summary>
         /// Remote devices Bluetooth address
         /// </summary>

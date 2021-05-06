@@ -1,6 +1,7 @@
 ﻿using BGLib.API;
 using Prism.Commands;
 using Prism.Regions;
+using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
@@ -38,6 +39,13 @@ namespace BGLib.WPF.ViewModels
                 discovery.Advertisements = e.Discovery.Advertisements;
                 discovery.RSSI = e.Discovery.RSSI;
             }
+            //_bgAPI.ConnectionStateChanged += OnConnectionStateChanged;
+            //await _bgAPI.ConnectAsync(discovery.Address);
+        }
+
+        private void OnConnectionStateChanged(object sender, ConnectionStateEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         public override void OnNavigatedTo(NavigationContext navigationContext)

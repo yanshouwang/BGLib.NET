@@ -3179,7 +3179,7 @@ namespace BGLib.API
         /// This event is not sent over USB interface.
         /// </para>
         /// </summary>
-        public event EventHandler<VersionEventArgs> SystemBoot;
+        public event EventHandler<VersionEventArgs> SystemBooted;
         /// <summary>
         /// This event is generated if the receive (incoming) buffer of the endpoint has been filled with a number of bytes
         /// equal or higher than the value defined by the command Endpoint Set Watermarks. Data from the receive buffer
@@ -3235,7 +3235,7 @@ namespace BGLib.API
                         var hardware = @event.Payload[11];
                         var version = new Version(major, minor, patch, build, linkLayer, protocol, hardware);
                         var eventArgs = new VersionEventArgs(version);
-                        SystemBoot?.Invoke(this, eventArgs);
+                        SystemBooted?.Invoke(this, eventArgs);
                         break;
                     }
                 case SystemEvent.EndpointWatermarkRX:
@@ -3258,7 +3258,7 @@ namespace BGLib.API
                     {
                         var address = BitConverter.ToUInt16(@event.Payload, 0);
                         var errorCode = BitConverter.ToUInt16(@event.Payload, 2);
-                        var eventArgs = new ScriptFailureEventArgs(address, errorCode);
+                        var eventArgs = new ScriptErrorEventArgs(address, errorCode);
                         ScriptFailed?.Invoke(this, eventArgs);
                         break;
                     }

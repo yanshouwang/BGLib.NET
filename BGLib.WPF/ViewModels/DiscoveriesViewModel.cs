@@ -1,7 +1,6 @@
-﻿using BGLib.API;
+﻿using BGLib.LowEnergy;
 using Prism.Commands;
 using Prism.Regions;
-using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
@@ -10,7 +9,7 @@ namespace BGLib.WPF.ViewModels
 {
     class DiscoveriesViewModel : BaseViewModel
     {
-        private readonly BGAPI _bgAPI;
+        private readonly Central _central;
 
         public IList<DiscoveryViewModel> Discoveries { get; }
 
@@ -18,34 +17,27 @@ namespace BGLib.WPF.ViewModels
             : base(regionManager)
         {
             Discoveries = new SynchronizationObservableCollection<DiscoveryViewModel>();
-            var serial = new SerialPort("COM3", 256000, Parity.None, 8, StopBits.One);
-            var communicator = new SerialCommunicator(serial);
-            _bgAPI = new BGAPI(communicator);
-            _bgAPI.Discovered += OnDiscovered;
+            _central = new Central("COM3", 256000, Parity.None, 8, StopBits.One);
+            _central.Discovered += OnDiscovered;
         }
 
         private void OnDiscovered(object sender, DiscoveryEventArgs e)
         {
-            var discovery = Discoveries.FirstOrDefault(i => i.Address.Value == e.Discovery.Address.Value);
+            var discovery = Discoveries.FirstOrDefault(i => i.Address.Value == e.Device.Address.Value);
             if (discovery == null)
             {
-                discovery = new DiscoveryViewModel(e.Discovery);
+                discovery = new DiscoveryViewModel(e.Type, e.Device, e.Advertisements, e.RSSI);
                 Discoveries.Add(discovery);
             }
             else
             {
-                discovery.Name = e.Discovery.Name;
-                discovery.Type = e.Discovery.Type;
-                discovery.Advertisements = e.Discovery.Advertisements;
-                discovery.RSSI = e.Discovery.RSSI;
+                discovery.Type = e.Type;
+                discovery.Name = e.Device.Name;
+                discovery.Advertisements = e.Advertisements;
+                discovery.RSSI = e.RSSI;
             }
             //_bgAPI.ConnectionStateChanged += OnConnectionStateChanged;
             //await _bgAPI.ConnectAsync(discovery.Address);
-        }
-
-        private void OnConnectionStateChanged(object sender, ConnectionStateEventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         public override void OnNavigatedTo(NavigationContext navigationContext)
@@ -69,7 +61,7 @@ namespace BGLib.WPF.ViewModels
 
         private async void ExecuteStartDiscoveryCommand()
         {
-            await _bgAPI.DiscoverAsync();
+            await _central.StartDiscoveryAsync();
         }
 
         private DelegateCommand _stopDiscoveryCommand;
@@ -78,7 +70,7 @@ namespace BGLib.WPF.ViewModels
 
         private async void ExecuteStopDiscoveryCommand()
         {
-            await _bgAPI.EndAsync();
+            await _central.StopDiscoveryAsync();
         }
 
         private DelegateCommand _clearDiscoveriesCommand;

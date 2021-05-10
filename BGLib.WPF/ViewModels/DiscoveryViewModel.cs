@@ -1,4 +1,4 @@
-﻿using BGLib.API;
+﻿using BGLib.LowEnergy;
 using Prism.Mvvm;
 using System.Collections.Generic;
 
@@ -8,41 +8,41 @@ namespace BGLib.WPF.ViewModels
     {
         public Address Address { get; }
 
-        string _name;
-        public string Name
-        {
-            get => _name;
-            set => SetProperty(ref _name, value);
-        }
-
-        DiscoveryType _type;
+        private DiscoveryType _type;
         public DiscoveryType Type
         {
             get => _type;
             set => SetProperty(ref _type, value);
         }
 
-        IList<Advertisement> _advertisements;
-        public IList<Advertisement> Advertisements
+        private string _name;
+        public string Name
+        {
+            get => _name;
+            set => SetProperty(ref _name, value);
+        }
+
+        private IDictionary<byte, byte[]> _advertisements;
+        public IDictionary<byte, byte[]> Advertisements
         {
             get => _advertisements;
             set => SetProperty(ref _advertisements, value);
         }
 
-        sbyte _rssi;
+        private sbyte _rssi;
         public sbyte RSSI
         {
             get => _rssi;
             set => SetProperty(ref _rssi, value);
         }
 
-        public DiscoveryViewModel(Discovery discovery)
+        public DiscoveryViewModel(DiscoveryType type, Device device, IDictionary<byte, byte[]> advertisements, sbyte rssi)
         {
-            Address = discovery.Address;
-            Name = discovery.Name;
-            Type = discovery.Type;
-            Advertisements = discovery.Advertisements;
-            RSSI = discovery.RSSI;
+            Type = type;
+            Address = device.Address;
+            Name = device.Name;
+            Advertisements = advertisements;
+            RSSI = rssi;
         }
     }
 }

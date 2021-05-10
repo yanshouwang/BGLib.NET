@@ -3,7 +3,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:BGLib.WPF.Views"
-      xmlns:lib="clr-namespace:BGLib.API;assembly=BGLib.API"
+      xmlns:viewmodels="clr-namespace:BGLib.WPF.ViewModels"
       x:Class="BGLib.WPF.Views.DiscoveriesView"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
@@ -51,7 +51,7 @@
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
-                <DataTemplate DataType="{x:Type lib:Discovery}">
+                <DataTemplate DataType="{x:Type viewmodels:DiscoveryViewModel}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

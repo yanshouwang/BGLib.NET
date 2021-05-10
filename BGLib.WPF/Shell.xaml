@@ -6,6 +6,6 @@
         xmlns:prism="http://prismlibrary.com/"
         x:Class="BGLib.WPF.Shell"
         mc:Ignorable="d"
-        Title="Shell" Height="450" Width="800"
+        Title="Shell" Height="450" Width="800" FontFamily="Consolas"
         prism:RegionManager.RegionName="Shell">
 </Window>

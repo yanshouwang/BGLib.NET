@@ -4,11 +4,16 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:BGLib.WPF.Views"
       xmlns:viewmodels="clr-namespace:BGLib.WPF.ViewModels"
+      xmlns:converters="clr-namespace:BGLib.WPF.Converters"
       x:Class="BGLib.WPF.Views.DiscoveriesView"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
+      d:DataContext="{d:DesignInstance Type=viewmodels:DiscoveriesViewModel}"
       Title="Discovery View"
       Background="#F2F2F2">
+    <Page.Resources>
+        <converters:ByteArrayToStringConverter x:Key="ByteArrayToStringConverter"/>
+    </Page.Resources>
     <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -53,25 +58,36 @@
             <ListView.ItemTemplate>
                 <DataTemplate DataType="{x:Type viewmodels:DiscoveryViewModel}">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="4"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="4"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="4"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="4"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="{Binding Address}"/>
-                        <TextBlock Grid.Row="2" Text="{Binding Name}"/>
-                        <TextBlock Grid.Row="0" Grid.Column="4" Grid.RowSpan="5"
-                                   Text="{Binding RSSI}" FontSize="20"
-                                   VerticalAlignment="Center"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding Address.Value}" Foreground="Blue"/>
+                            <TextBlock Grid.Column="2" Text="{Binding Name}" Foreground="Orange"/>
+                            <TextBlock Grid.Column="6" Text="{Binding RSSI}" Foreground="Green"/>
+                        </Grid>
+                        <ItemsControl Grid.Row="2" BorderThickness="0" ItemsSource="{Binding Advertisements}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Key, StringFormat='0x{0:X2}'}"/>
+                                        <TextBlock Text="{Binding Value, Converter={StaticResource ByteArrayToStringConverter}}"
+                                                   Margin="12,0,0,0"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

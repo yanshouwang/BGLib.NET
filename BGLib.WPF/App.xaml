@@ -5,6 +5,5 @@
     xmlns:prism="http://prismlibrary.com/"
     x:Class="BGLib.WPF.App">
     <Application.Resources>
-         
     </Application.Resources>
 </prism:PrismApplication>

@@ -18,30 +18,27 @@
     <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="4"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0" Margin="4">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="4"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="4"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="4"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Content="START DISCOVERY" Padding="4"
                     Command="{Binding StartDiscoveryCommand}"/>
             <Button Grid.Column="2" Content="STOP DISCOVERY" Padding="4"
                     Command="{Binding StopDiscoveryCommand}"/>
-            <Button Grid.Column="4" Content="CLEAR DISCOVERIES" Padding="4"
+            <Button Grid.Column="6" Content="CLEAR DISCOVERIES" Padding="4"
                     Command="{Binding ClearDiscoveriesCommand}"/>
-            <Button Grid.Column="6" Content="CONNECT" Padding="4"
-                    Command="{Binding ConnectCommand}"/>
         </Grid>
-        <controls:ListControl Grid.Row="2"
-                              Background="Transparent"
-                              BorderThickness="0"
+        <controls:ListControl Grid.Row="2" Background="Transparent"
                               HorizontalContentAlignment="Stretch"
                               ItemsSource="{Binding Discoveries}">
             <behaviors:Interaction.Triggers>

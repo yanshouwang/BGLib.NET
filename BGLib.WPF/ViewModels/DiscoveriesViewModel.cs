@@ -109,24 +109,5 @@ namespace BGLib.WPF.ViewModels
             parameters.Add("Address", discovery.Address);
             RegionManager.RequestNavigate(source, parameters);
         }
-
-        private DelegateCommand _connectCommand;
-        public DelegateCommand ConnectCommand
-            => _connectCommand ??= new DelegateCommand(ExecuteConnectCommand);
-
-        private async void ExecuteConnectCommand()
-        {
-            var rawValue = new byte[] { 0xF5, 0xB8, 0xC4, 0x57, 0x0B, 0x00 };
-            var address = new Address(Core.GAP.AddressType.Public, rawValue);
-            try
-            {
-                var peripheral = await _central.ConnectAsync(address);
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-        }
     }
 }

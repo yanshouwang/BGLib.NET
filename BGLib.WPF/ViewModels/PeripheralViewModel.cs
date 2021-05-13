@@ -22,6 +22,13 @@ namespace BGLib.WPF.ViewModels
             set => SetProperty(ref _address, value);
         }
 
+        private bool _connected;
+        public bool Connected
+        {
+            get => _connected;
+            set => SetProperty(ref _connected, value);
+        }
+
         public IList<byte[]> Values { get; }
 
         public IList<TreeNode> ServiceNodes { get; }
@@ -59,7 +66,10 @@ namespace BGLib.WPF.ViewModels
 
         private void OnConnectioinLost(object sender, PeripheralEventArgs e)
         {
-
+            if (e.Peripheral != _peripheral)
+                return;
+            ServiceNodes.Clear();
+            Connected = false;
         }
 
         private void OnCharacteristicValueChanged(object sender, GattCharacteristicValueEventArgs e)
@@ -79,15 +89,21 @@ namespace BGLib.WPF.ViewModels
 
         private DelegateCommand _connectCommand;
         public DelegateCommand ConnectCommand
-            => _connectCommand ??= new DelegateCommand(ExecuteConnectCommand);
+            => _connectCommand ??= new DelegateCommand(ExecuteConnectCommand, CanExecuteConnectCommand)
+            .ObservesProperty(() => Connected);
+
+        private bool CanExecuteConnectCommand()
+        {
+            return !Connected;
+        }
 
         private async void ExecuteConnectCommand()
         {
             try
             {
-                var peripheral = await _central.ConnectAsync(_address);
-                _peripheral = peripheral;
-                var services = await _central.GetServicesAsync(peripheral);
+                _peripheral = await _central.ConnectAsync(_address);
+                Connected = true;
+                var services = await _central.GetServicesAsync(_peripheral);
                 foreach (var service in services)
                 {
                     var characteristics = await _central.GetCharacteristicsAsync(service);
@@ -107,42 +123,6 @@ namespace BGLib.WPF.ViewModels
             }
         }
 
-        private DelegateCommand _disconnectCommand;
-        public DelegateCommand DisconnectCommand
-            => _disconnectCommand ??= new DelegateCommand(ExecuteDisconnectCommand);
-
-        private async void ExecuteDisconnectCommand()
-        {
-            try
-            {
-                await _central.DisconnectAsync(_peripheral);
-                ServiceNodes.Clear();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private DelegateCommand _notifyCommand;
-        public DelegateCommand NotifyCommand
-            => _notifyCommand ??= new DelegateCommand(ExecuteNotifyCommand);
-
-        private async void ExecuteNotifyCommand()
-        {
-            await _central.ConfigAsync(Characteristic, GattCharacteristicSettings.Notify);
-        }
-
-        private DelegateCommand<string> _writeCommand;
-        public DelegateCommand<string> WriteCommand
-            => _writeCommand ??= new DelegateCommand<string>(ExecuteWriteCommand);
-
-        private async void ExecuteWriteCommand(string value)
-        {
-            var data = Encoding.UTF8.GetBytes($"{value}\r\n");
-            await _central.WriteAsync(Characteristic, data, GattCharacteristicWriteType.Default);
-        }
-
         private DelegateCommand<object> _selectCommand;
         public DelegateCommand<object> SelectCommand
             => _selectCommand ??= new DelegateCommand<object>(ExecuteSelectCommand);
@@ -160,14 +140,77 @@ namespace BGLib.WPF.ViewModels
             }
         }
 
+        private DelegateCommand _notifyCommand;
+        public DelegateCommand NotifyCommand
+            => _notifyCommand ??= new DelegateCommand(ExecuteNotifyCommand, CanExecuteNotifyCommand)
+            .ObservesProperty(() => Connected)
+            .ObservesProperty(() => Characteristic);
+
+        private bool CanExecuteNotifyCommand()
+        {
+            return Connected && Characteristic != null && Characteristic.Properties.HasFlag(GattCharacteristicProperty.Notify);
+        }
+
+        private async void ExecuteNotifyCommand()
+        {
+            await _central.ConfigAsync(Characteristic, GattCharacteristicSettings.Notify);
+        }
+
         private DelegateCommand _readCommand;
         public DelegateCommand ReadCommand
-            => _readCommand ??= new DelegateCommand(ExecuteReadCommand);
+            => _readCommand ??= new DelegateCommand(ExecuteReadCommand, CanExecuteReadCommand)
+            .ObservesProperty(() => Connected)
+            .ObservesProperty(() => Characteristic);
+
+        private bool CanExecuteReadCommand()
+        {
+            return Connected && Characteristic != null && Characteristic.Properties.HasFlag(GattCharacteristicProperty.Read);
+        }
 
         private async void ExecuteReadCommand()
         {
             var value = await _central.ReadAsync(Characteristic);
-            var str = Encoding.UTF8.GetString(value);
+            Values.Add(value);
+        }
+
+        private DelegateCommand<string> _writeCommand;
+        public DelegateCommand<string> WriteCommand
+            => _writeCommand ??= new DelegateCommand<string>(ExecuteWriteCommand, CanExecuteWriteCommand)
+            .ObservesProperty(() => Connected)
+            .ObservesProperty(() => Characteristic);
+
+        private bool CanExecuteWriteCommand(string arg)
+        {
+            return Connected && Characteristic != null && Characteristic.Properties.HasFlag(GattCharacteristicProperty.Write);
+        }
+
+        private async void ExecuteWriteCommand(string value)
+        {
+            var data = Encoding.UTF8.GetBytes($"{value}\r\n");
+            await _central.WriteAsync(Characteristic, data, GattCharacteristicWriteType.Default);
+        }
+
+        private DelegateCommand _disconnectCommand;
+        public DelegateCommand DisconnectCommand
+            => _disconnectCommand ??= new DelegateCommand(ExecuteDisconnectCommand, CanExecuteDisconnectCommand);
+
+        private bool CanExecuteDisconnectCommand()
+        {
+            return Connected;
+        }
+
+        private async void ExecuteDisconnectCommand()
+        {
+            try
+            {
+                await _central.DisconnectAsync(_peripheral);
+                ServiceNodes.Clear();
+                Connected = false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
     }
 }

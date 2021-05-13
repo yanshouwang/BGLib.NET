@@ -16,27 +16,52 @@
         <converters:ByteArrayToUTF8Converter x:Key="ByteArrayToUTF8Converter"/>
     </Page.Resources>
 
-    <StackPanel>
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="4"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <TextBlock Text="{Binding Address}"/>
-        <Button Content="Go Back"
-                Command="{Binding GoBackCommand}"/>
-        <Button Content="Connect"
-                Command="{Binding ConnectCommand}"/>
-        <Button Content="Notify"
-                Command="{Binding NotifyCommand}"/>
-        <Button Content="Handshake"
-                Command="{Binding WriteCommand}" CommandParameter="@BGLib"/>
-        <Button Content="Disconnect"
-                Command="{Binding DisconnectCommand}"/>
-        <TextBox x:Name="ABC"/>
-        <Button Content="Write"
-                Command="{Binding WriteCommand}"
-                CommandParameter="{Binding Source={x:Reference ABC}, Path=Text}"/>
-        <Button Content="Read"
-                Command="{Binding ReadCommand}"/>
         <Grid>
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="4"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Go Back"
+                    Command="{Binding GoBackCommand}"/>
+            <Button Grid.Column="2" Content="Connect"
+                    Command="{Binding ConnectCommand}"/>
+            <Button Grid.Column="4" Content="Notify"
+                    Command="{Binding NotifyCommand}"/>
+            <Button Grid.Column="6" Content="Handshake"
+                    Command="{Binding WriteCommand}" CommandParameter="@BGLib"/>
+            <Button Grid.Column="8" Content="Read"
+                    Command="{Binding ReadCommand}"/>
+            <TextBox x:Name="WriteView" Grid.Column="10"/>
+            <Button Grid.Column="12" Content="Write"
+                    Command="{Binding WriteCommand}"
+                    CommandParameter="{Binding Source={x:Reference WriteView}, Path=Text}"/>
+            <Button Grid.Column="14" Content="Disconnect"
+                    Command="{Binding DisconnectCommand}"/>
+        </Grid>
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="4"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <TreeView Grid.Column="0" ItemsSource="{Binding ServiceNodes}">
@@ -51,7 +76,7 @@
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
-            <ListView Grid.Column="1" ItemsSource="{Binding Values}">
+            <ListView Grid.Column="2" ItemsSource="{Binding Values}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Converter={StaticResource ByteArrayToUTF8Converter}}"/>
@@ -59,6 +84,6 @@
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
-    </StackPanel>
+    </Grid>
 
 </Page>

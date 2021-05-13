@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace BGLib.WPF.Views
 {
     /// <summary>
-    /// DeviceView.xaml 的交互逻辑
+    /// PeripheralView.xaml 的交互逻辑
     /// </summary>
-    public partial class DeviceView : Page
+    public partial class PeripheralView : Page
     {
-        public DeviceView()
+        public PeripheralView()
         {
             InitializeComponent();
         }

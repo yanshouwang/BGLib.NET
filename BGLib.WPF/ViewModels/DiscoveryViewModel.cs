@@ -6,14 +6,14 @@ namespace BGLib.WPF.ViewModels
 {
     class DiscoveryViewModel : BindableBase
     {
-        public Address Address { get; }
-
         private DiscoveryType _type;
         public DiscoveryType Type
         {
             get => _type;
             set => SetProperty(ref _type, value);
         }
+
+        public Address Address { get; }
 
         private string _name;
         public string Name
@@ -36,11 +36,11 @@ namespace BGLib.WPF.ViewModels
             set => SetProperty(ref _rssi, value);
         }
 
-        public DiscoveryViewModel(DiscoveryType type, Device device, IDictionary<byte, byte[]> advertisements, sbyte rssi)
+        public DiscoveryViewModel(DiscoveryType type, Address address, string name, IDictionary<byte, byte[]> advertisements, sbyte rssi)
         {
             Type = type;
-            Address = device.Address;
-            Name = device.Name;
+            Address = address;
+            Name = name;
             Advertisements = advertisements;
             RSSI = rssi;
         }

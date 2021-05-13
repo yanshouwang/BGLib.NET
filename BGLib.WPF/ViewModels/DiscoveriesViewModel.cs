@@ -1,9 +1,12 @@
 ﻿using BGLib.LowEnergy;
+using BGLib.WPF.Views;
 using Prism.Commands;
 using Prism.Regions;
+using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
+using System.Windows;
 
 namespace BGLib.WPF.ViewModels
 {
@@ -23,21 +26,19 @@ namespace BGLib.WPF.ViewModels
 
         private void OnDiscovered(object sender, DiscoveryEventArgs e)
         {
-            var discovery = Discoveries.FirstOrDefault(i => i.Address.Value == e.Device.Address.Value);
+            var discovery = Discoveries.FirstOrDefault(i => Equals(i.Address, e.Address));
             if (discovery == null)
             {
-                discovery = new DiscoveryViewModel(e.Type, e.Device, e.Advertisements, e.RSSI);
+                discovery = new DiscoveryViewModel(e.Type, e.Address, e.Name, e.Advertisements, e.RSSI);
                 Discoveries.Add(discovery);
             }
             else
             {
                 discovery.Type = e.Type;
-                discovery.Name = e.Device.Name;
+                discovery.Name = e.Name;
                 discovery.Advertisements = e.Advertisements;
                 discovery.RSSI = e.RSSI;
             }
-            //_bgAPI.ConnectionStateChanged += OnConnectionStateChanged;
-            //await _bgAPI.ConnectAsync(discovery.Address);
         }
 
         public override void OnNavigatedTo(NavigationContext navigationContext)
@@ -61,7 +62,14 @@ namespace BGLib.WPF.ViewModels
 
         private async void ExecuteStartDiscoveryCommand()
         {
-            await _central.StartDiscoveryAsync();
+            try
+            {
+                await _central.StartDiscoveryAsync(Core.GAP.DiscoverMode.Observation);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private DelegateCommand _stopDiscoveryCommand;
@@ -70,7 +78,14 @@ namespace BGLib.WPF.ViewModels
 
         private async void ExecuteStopDiscoveryCommand()
         {
-            await _central.StopDiscoveryAsync();
+            try
+            {
+                await _central.StopDiscoveryAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private DelegateCommand _clearDiscoveriesCommand;
@@ -80,6 +95,38 @@ namespace BGLib.WPF.ViewModels
         private void ExecuteClearDiscoveriesCommand()
         {
             Discoveries.Clear();
+        }
+
+        private DelegateCommand<DiscoveryViewModel> _shwoPeripheralViewCommand;
+        public DelegateCommand<DiscoveryViewModel> ShowPeripheralViewCommand
+            => _shwoPeripheralViewCommand ??= new DelegateCommand<DiscoveryViewModel>(ExecuteShowPeripheralViewCommand);
+
+        private void ExecuteShowPeripheralViewCommand(DiscoveryViewModel discovery)
+        {
+            var source = $"{nameof(PeripheralView)}";
+            var parameters = new NavigationParameters();
+            parameters.Add("Central", _central);
+            parameters.Add("Address", discovery.Address);
+            RegionManager.RequestNavigate(source, parameters);
+        }
+
+        private DelegateCommand _connectCommand;
+        public DelegateCommand ConnectCommand
+            => _connectCommand ??= new DelegateCommand(ExecuteConnectCommand);
+
+        private async void ExecuteConnectCommand()
+        {
+            var rawValue = new byte[] { 0xF5, 0xB8, 0xC4, 0x57, 0x0B, 0x00 };
+            var address = new Address(Core.GAP.AddressType.Public, rawValue);
+            try
+            {
+                var peripheral = await _central.ConnectAsync(address);
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
         }
     }
 }

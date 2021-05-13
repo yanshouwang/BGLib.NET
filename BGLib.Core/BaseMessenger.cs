@@ -24,6 +24,7 @@ namespace BGLib.Core
             {
                 return;
             }
+            global::System.Diagnostics.Debug.WriteLine($"[EVENT] {e.Message.Category}, {e.Message.Id}: {BitConverter.ToString(e.Message.Value)}");
             OnEventAnalyzed(e.Message.Id, e.Message.Value);
         }
 
@@ -31,6 +32,7 @@ namespace BGLib.Core
         {
             var command = new Message(COMMAND, Category, id, commandValue);
             _messageHub.Write(command);
+            global::System.Diagnostics.Debug.WriteLine($"[COMMAND] {command.Category}, {command.Id}: {BitConverter.ToString(command.Value)}");
         }
 
         protected async Task<byte[]> WriteAsync(byte id, byte[] commandValue = null)

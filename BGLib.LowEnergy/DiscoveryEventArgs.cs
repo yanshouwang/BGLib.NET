@@ -1,6 +1,4 @@
-﻿using BGLib.Core;
-using BGLib.Core.GAP;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,18 +7,18 @@ namespace BGLib.LowEnergy
     public class DiscoveryEventArgs : EventArgs
     {
         public DiscoveryType Type { get; }
+        public Address Address { get; }
+        public string Name { get; }
         public sbyte RSSI { get; }
         public byte[] RawAdvertisements { get; }
         public IDictionary<byte, byte[]> Advertisements { get; }
-        public Device Device { get; }
 
-        public DiscoveryEventArgs(DiscoveryType type, Address address, byte bond, sbyte rssi, byte[] rawAdvertisement, MessageHub messageHub)
+        public DiscoveryEventArgs(DiscoveryType type, Address address, byte[] rawAdvertisement, sbyte rssi)
         {
             Type = type;
-            RSSI = rssi;
+            Address = address;
             RawAdvertisements = rawAdvertisement;
             Advertisements = new Dictionary<byte, byte[]>();
-
             var i = 0;
             while (i < rawAdvertisement.Length)
             {
@@ -33,12 +31,11 @@ namespace BGLib.LowEnergy
                 Advertisements[key] = value;
                 i += value.Length;
             }
-
-            var name = Advertisements.TryGetValue(0x08, out var nameValue) ||
+            Name = Advertisements.TryGetValue(0x08, out var nameValue) ||
                        Advertisements.TryGetValue(0x09, out nameValue)
                        ? Encoding.UTF8.GetString(nameValue)
                        : null;
-            Device = new Device(address, name, bond, messageHub);
+            RSSI = rssi;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace BGLib.WPF
         protected override void RegisterTypes(IContainerRegistry registry)
         {
             registry.RegisterForNavigation<DiscoveriesView>();
-            registry.RegisterForNavigation<DeviceView>();
+            registry.RegisterForNavigation<PeripheralView>();
         }
 
         protected override void OnInitialized()

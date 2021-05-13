@@ -9,10 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
     <PackageReference Include="Prism.Unity" Version="8.0.0.1909" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BGLib.LowEnergy\BGLib.LowEnergy.csproj" />
+    <PackageReference Include="BGLib.LowEnergy" Version="1.0.0" />
   </ItemGroup>
 
 </Project>

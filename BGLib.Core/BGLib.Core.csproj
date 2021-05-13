@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>net461;netstandard2.1;net5.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Authors>yanshouwang</Authors>
     <Company>yanshouwang</Company>
@@ -14,7 +16,7 @@
     <RepositoryType>Git</RepositoryType>
     <PackageTags>BGLib BGAPI BLED112</PackageTags>
     <PackageReleaseNotes>BGLib for .NET</PackageReleaseNotes>
-    <LangVersion>latest</LangVersion>
+    <DocumentationFile>BGLib.Core.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

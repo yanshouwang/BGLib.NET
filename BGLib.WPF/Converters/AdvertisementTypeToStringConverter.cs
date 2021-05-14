@@ -1,4 +1,4 @@
-﻿using BGLib.Core;
+﻿using BGLib.SDK;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

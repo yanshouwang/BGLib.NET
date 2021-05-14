@@ -64,7 +64,7 @@ namespace BGLib.WPF.ViewModels
         {
             try
             {
-                await _central.StartDiscoveryAsync(Core.GAP.DiscoverMode.Observation);
+                await _central.StartDiscoveryAsync(SDK.GAP.DiscoverMode.Observation);
             }
             catch (Exception ex)
             {

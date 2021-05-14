@@ -1,7 +1,7 @@
-﻿using BGLib.Core;
-using BGLib.Core.AttributeClient;
-using BGLib.Core.Connection;
-using BGLib.Core.GAP;
+﻿using BGLib.SDK;
+using BGLib.SDK.AttributeClient;
+using BGLib.SDK.Connection;
+using BGLib.SDK.GAP;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;

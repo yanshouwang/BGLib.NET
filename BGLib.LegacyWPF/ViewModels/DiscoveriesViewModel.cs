@@ -114,7 +114,7 @@ namespace BGLib.LegacyWPF.ViewModels
         {
             try
             {
-                await Central.StartDiscoveryAsync(Core.GAP.DiscoverMode.Observation);
+                await Central.StartDiscoveryAsync(SDK.GAP.DiscoverMode.Observation);
             }
             catch (Exception ex)
             {

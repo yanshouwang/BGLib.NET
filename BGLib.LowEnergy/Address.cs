@@ -1,4 +1,4 @@
-﻿using BGLib.Core.GAP;
+﻿using BGLib.SDK.GAP;
 using System;
 using System.Linq;
 

@@ -3,11 +3,10 @@ using Prism.Commands;
 using Prism.Regions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Windows;
 
-namespace BGLib.WPF.ViewModels
+namespace BGLib.LegacyWPF.ViewModels
 {
     class PeripheralViewModel : BaseViewModel
     {
@@ -121,23 +120,6 @@ namespace BGLib.WPF.ViewModels
                     var serviceNode = new TreeNode(service, characteristicNodes);
                     ServiceNodes.Add(serviceNode);
                 }
-                //var serviceNode1 = ServiceNodes.FirstOrDefault(
-                //    i => i.Object is GattService service && service.UUID == Guid.Parse("0000A002-0000-1000-8000-00805F9B34FB"));
-                //if (serviceNode1 == null)
-                //    return;
-                //var characteristicNode1 = serviceNode1.Nodes.FirstOrDefault(
-                //    i => i.Object is GattCharacteristic characteristic && characteristic.UUID == Guid.Parse("0000C305-0000-1000-8000-00805F9B34FB"));
-                //if (characteristicNode1 == null)
-                //    return;
-                //var characteristic1 = characteristicNode1.Object as GattCharacteristic;
-                //await _central.ConfigAsync(characteristic1, GattCharacteristicSettings.Notify);
-                //else if (characteristic.UUID == Guid.Parse("0000C304-0000-1000-8000-00805F9B34FB"))
-                //{
-                //    var message = "@BGLib\r\n";
-                //    var value = Encoding.UTF8.GetBytes(message);
-                //    await _central.WriteAsync(characteristic, value, GattCharacteristicWriteType.Default);
-                //    Messages.Add(message);
-                //}
             }
             catch (Exception ex)
             {

@@ -120,15 +120,16 @@ namespace BGLib.LowEnergy
             {
                 if (e.Connection != connection)
                     return;
-                if (e.ErrorCode == 0)
-                {
-                    itemsTCS.TrySetResult(items);
-                }
-                else
-                {
-                    var error = new ErrorException(e.ErrorCode);
-                    itemsTCS.TrySetException(error);
-                }
+                //if (e.ErrorCode == 0)
+                //{
+                //    itemsTCS.TrySetResult(items);
+                //}
+                //else
+                //{
+                //    var error = new ErrorException(e.ErrorCode);
+                //    itemsTCS.TrySetException(error);
+                //}
+                itemsTCS.TrySetResult(items);
             });
             _messageHub.AttributeClient.GroupFound += onGroupFound;
             _messageHub.AttributeClient.ProcedureCompleted += onProcedureCompleted;
@@ -172,15 +173,16 @@ namespace BGLib.LowEnergy
             {
                 if (e.Connection != connection)
                     return;
-                if (e.ErrorCode == 0)
-                {
-                    itemsTCS.TrySetResult(items);
-                }
-                else
-                {
-                    var error = new ErrorException(e.ErrorCode);
-                    itemsTCS.TrySetException(error);
-                }
+                //if (e.ErrorCode == 0)
+                //{
+                //    itemsTCS.TrySetResult(items);
+                //}
+                //else
+                //{
+                //    var error = new ErrorException(e.ErrorCode);
+                //    itemsTCS.TrySetException(error);
+                //}
+                itemsTCS.TrySetResult(items);
             });
             _messageHub.AttributeClient.AttributeValue += onAttributeValue;
             _messageHub.AttributeClient.ProcedureCompleted += onProcedureCompleted;
@@ -292,15 +294,62 @@ namespace BGLib.LowEnergy
             }
         }
 
+        //public async Task ConfigAsync(GattCharacteristic characteristic, GattCharacteristicSettings settings)
+        //{
+        //    var connection = characteristic.Connection;
+        //    var itemsTCS = new TaskCompletionSource<IList<AttributeValueEventArgs>>();
+        //    var items = new List<AttributeValueEventArgs>();
+        //    var onAttributeValue = new EventHandler<AttributeValueEventArgs>((s, e) =>
+        //    {
+        //        if (e.Connection != connection ||
+        //            e.Type != AttributeValueType.ReadByType)
+        //            return;
+        //        items.Add(e);
+        //    });
+        //    var onProcedureCompleted = new EventHandler<ProcedureCompletedEventArgs>((s, e) =>
+        //    {
+        //        if (e.Connection != connection)
+        //            return;
+        //        if (e.ErrorCode == 0)
+        //        {
+        //            itemsTCS.TrySetResult(items);
+        //        }
+        //        else
+        //        {
+        //            var error = new ErrorException(e.ErrorCode);
+        //            itemsTCS.TrySetException(error);
+        //        }
+        //    });
+        //    _messageHub.AttributeClient.AttributeValue += onAttributeValue;
+        //    _messageHub.AttributeClient.ProcedureCompleted += onProcedureCompleted;
+        //    try
+        //    {
+        //        var start = characteristic.Start;
+        //        var end = characteristic.End;
+        //        var uuid = (ushort)0x2902;
+        //        var uuidValue = BitConverter.GetBytes(uuid);
+        //        await _messageHub.AttributeClient.ReadByTypeAsync(connection, start, end, uuidValue);
+        //        await itemsTCS.Task;
+        //    }
+        //    finally
+        //    {
+        //        _messageHub.AttributeClient.AttributeValue -= onAttributeValue;
+        //        _messageHub.AttributeClient.ProcedureCompleted -= onProcedureCompleted;
+        //    }
+        //    var handle = items[0].AttHandle;
+        //    var settingsValue = (ushort)settings;
+        //    var value = BitConverter.GetBytes(settingsValue);
+        //    await _messageHub.AttributeClient.WriteCommandAsync(connection, handle, value);
+        //}
+
         public async Task ConfigAsync(GattCharacteristic characteristic, GattCharacteristicSettings settings)
         {
             var connection = characteristic.Connection;
-            var itemsTCS = new TaskCompletionSource<IList<AttributeValueEventArgs>>();
-            var items = new List<AttributeValueEventArgs>();
-            var onAttributeValue = new EventHandler<AttributeValueEventArgs>((s, e) =>
+            var itemsTCS = new TaskCompletionSource<IList<FindInformationFoundEventArgs>>();
+            var items = new List<FindInformationFoundEventArgs>();
+            var onFindInformationFound = new EventHandler<FindInformationFoundEventArgs>((s, e) =>
             {
-                if (e.Connection != connection ||
-                    e.Type != AttributeValueType.ReadByType)
+                if (e.Connection != connection)
                     return;
                 items.Add(e);
             });
@@ -318,26 +367,29 @@ namespace BGLib.LowEnergy
                     itemsTCS.TrySetException(error);
                 }
             });
-            _messageHub.AttributeClient.AttributeValue += onAttributeValue;
+            _messageHub.AttributeClient.FindInformationFound += onFindInformationFound;
             _messageHub.AttributeClient.ProcedureCompleted += onProcedureCompleted;
             try
             {
                 var start = characteristic.Start;
                 var end = characteristic.End;
-                var uuid = (ushort)0x2902;
-                var uuidValue = BitConverter.GetBytes(uuid);
-                await _messageHub.AttributeClient.ReadByTypeAsync(connection, start, end, uuidValue);
+                await _messageHub.AttributeClient.FindInformationAsync(connection, start, end);
                 await itemsTCS.Task;
             }
             finally
             {
-                _messageHub.AttributeClient.AttributeValue -= onAttributeValue;
+                _messageHub.AttributeClient.FindInformationFound -= onFindInformationFound;
                 _messageHub.AttributeClient.ProcedureCompleted -= onProcedureCompleted;
             }
-            var handle = items[0].AttHandle;
+            var item = items.First(i =>
+            {
+                var uuid = BitConverter.ToUInt16(i.UUID, 0);
+                return uuid == 0x2902;
+            });
+            var handle = item.ChrHandle;
             var settingsValue = (ushort)settings;
             var value = BitConverter.GetBytes(settingsValue);
-            await WriteAttributeAsync(connection, handle, value);
+            await _messageHub.AttributeClient.WriteCommandAsync(connection, handle, value);
         }
 
         public async Task DisconnectAsync(Peripheral peripheral)

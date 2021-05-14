@@ -25,16 +25,17 @@ namespace BGLib.LowEnergy
                 // Notice that advertisement or scan response data must be formatted in accordance to the Bluetooth Core
                 // Specification.See BLUETOOTH SPECIFICATION Version 4.0[Vol 3 - Part C - Chapter 11].
                 var length = rawAdvertisement[i++];
+                if (length == 0)
+                    break;
                 var key = rawAdvertisement[i++];
                 var value = new byte[length - 1];
                 Array.Copy(rawAdvertisement, i, value, 0, value.Length);
                 Advertisements[key] = value;
                 i += value.Length;
             }
-            Name = Advertisements.TryGetValue(0x08, out var nameValue) ||
-                       Advertisements.TryGetValue(0x09, out nameValue)
-                       ? Encoding.UTF8.GetString(nameValue)
-                       : null;
+            Name = Advertisements.TryGetValue(0x08, out var nameValue) || Advertisements.TryGetValue(0x09, out nameValue)
+                 ? Encoding.UTF8.GetString(nameValue)
+                 : null;
             RSSI = rssi;
         }
     }

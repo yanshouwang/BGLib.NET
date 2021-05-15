@@ -1,11 +1,9 @@
-﻿using BGLib.LowEnergy;
+﻿using BGLib.Wand;
 using Prism.Commands;
 using Prism.Regions;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace BGLib.WPF.ViewModels
@@ -13,14 +11,9 @@ namespace BGLib.WPF.ViewModels
     class PeripheralViewModel : BaseViewModel
     {
         private Central _central;
+        private MAC _mac;
+        private MacType _macType;
         private Peripheral _peripheral;
-
-        private Address _address;
-        public Address Address
-        {
-            get => _address;
-            set => SetProperty(ref _address, value);
-        }
 
         private bool _connected;
         public bool Connected
@@ -29,7 +22,7 @@ namespace BGLib.WPF.ViewModels
             set => SetProperty(ref _connected, value);
         }
 
-        public IList<byte[]> Values { get; }
+        public IList<string> Messages { get; }
 
         public IList<TreeNode> ServiceNodes { get; }
 
@@ -43,14 +36,15 @@ namespace BGLib.WPF.ViewModels
         public PeripheralViewModel(IRegionManager regionManager)
             : base(regionManager)
         {
-            ServiceNodes = new ObservableCollection<TreeNode>();
-            Values = new SynchronizationObservableCollection<byte[]>();
+            ServiceNodes = new SynchronizationObservableCollection<TreeNode>();
+            Messages = new SynchronizationObservableCollection<string>();
         }
 
         public override bool IsNavigationTarget(NavigationContext context)
         {
-            context.Parameters.TryGetValue<Address>("Address", out var address);
-            return Equals(address, Address);
+            context.Parameters.TryGetValue<MAC>("MAC", out var mac);
+            context.Parameters.TryGetValue<MacType>("MacType", out var macType);
+            return mac == _mac && _macType == macType;
         }
 
         public override void OnNavigatedTo(NavigationContext context)
@@ -58,10 +52,24 @@ namespace BGLib.WPF.ViewModels
             base.OnNavigatedTo(context);
 
             context.Parameters.TryGetValue("Central", out _central);
-            context.Parameters.TryGetValue("Address", out _address);
+            context.Parameters.TryGetValue("MAC", out _mac);
+            context.Parameters.TryGetValue("MacType", out _macType);
 
             _central.ConnectionLost += OnConnectioinLost;
             _central.CharacteristicValueChanged += OnCharacteristicValueChanged;
+        }
+
+        public override void OnNavigatedFrom(NavigationContext context)
+        {
+            base.OnNavigatedFrom(context);
+
+            _central.ConnectionLost -= OnConnectioinLost;
+            _central.CharacteristicValueChanged -= OnCharacteristicValueChanged;
+
+            if (DisconnectCommand.CanExecute())
+            {
+                DisconnectCommand.Execute();
+            }
         }
 
         private void OnConnectioinLost(object sender, PeripheralEventArgs e)
@@ -76,15 +84,8 @@ namespace BGLib.WPF.ViewModels
         {
             if (e.Characteristic != Characteristic)
                 return;
-            Values.Add(e.Value);
-        }
-
-        public override void OnNavigatedFrom(NavigationContext context)
-        {
-            base.OnNavigatedFrom(context);
-
-            _central.ConnectionLost -= OnConnectioinLost;
-            _central.CharacteristicValueChanged -= OnCharacteristicValueChanged;
+            var message = Encoding.UTF8.GetString(e.Value).TrimEnd();
+            Messages.Add(message);
         }
 
         private DelegateCommand _connectCommand;
@@ -101,7 +102,7 @@ namespace BGLib.WPF.ViewModels
         {
             try
             {
-                _peripheral = await _central.ConnectAsync(_address);
+                _peripheral = await _central.ConnectAsync(_mac, _macType);
                 Connected = true;
                 var services = await _central.GetServicesAsync(_peripheral);
                 foreach (var service in services)
@@ -153,7 +154,14 @@ namespace BGLib.WPF.ViewModels
 
         private async void ExecuteNotifyCommand()
         {
-            await _central.ConfigAsync(Characteristic, GattCharacteristicSettings.Notify);
+            try
+            {
+                await _central.ConfigAsync(Characteristic, GattCharacteristicSettings.Notify);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private DelegateCommand _readCommand;
@@ -169,8 +177,16 @@ namespace BGLib.WPF.ViewModels
 
         private async void ExecuteReadCommand()
         {
-            var value = await _central.ReadAsync(Characteristic);
-            Values.Add(value);
+            try
+            {
+                var value = await _central.ReadAsync(Characteristic);
+                var message = Encoding.UTF8.GetString(value).TrimEnd();
+                Messages.Add(message);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private DelegateCommand<string> _writeCommand;
@@ -179,20 +195,45 @@ namespace BGLib.WPF.ViewModels
             .ObservesProperty(() => Connected)
             .ObservesProperty(() => Characteristic);
 
-        private bool CanExecuteWriteCommand(string arg)
+        private bool CanExecuteWriteCommand(string message)
         {
             return Connected && Characteristic != null && Characteristic.Properties.HasFlag(GattCharacteristicProperty.Write);
         }
 
-        private async void ExecuteWriteCommand(string value)
+        private async void ExecuteWriteCommand(string message)
         {
-            var data = Encoding.UTF8.GetBytes($"{value}\r\n");
-            await _central.WriteAsync(Characteristic, data, GattCharacteristicWriteType.Default);
+            try
+            {
+                var value = Encoding.UTF8.GetBytes($"{message}\r\n");
+                var type = GattCharacteristicWriteType.Default;
+                // 大于 20 字节需要分包发送
+                var capacity = 20;
+                var count = value.Length / capacity;
+                var length = value.Length % capacity;
+                for (var i = 0; i < count; i++)
+                {
+                    var large = new byte[capacity];
+                    Array.Copy(value, i * capacity, large, 0, capacity);
+                    await _central.WriteAsync(Characteristic, large, type);
+                }
+                if (length > 0)
+                {
+                    var small = new byte[length];
+                    Array.Copy(value, count * capacity, small, 0, length);
+                    await _central.WriteAsync(Characteristic, small, type);
+                }
+                Messages.Add(message);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private DelegateCommand _disconnectCommand;
         public DelegateCommand DisconnectCommand
-            => _disconnectCommand ??= new DelegateCommand(ExecuteDisconnectCommand, CanExecuteDisconnectCommand);
+            => _disconnectCommand ??= new DelegateCommand(ExecuteDisconnectCommand, CanExecuteDisconnectCommand)
+            .ObservesProperty(() => Connected);
 
         private bool CanExecuteDisconnectCommand()
         {

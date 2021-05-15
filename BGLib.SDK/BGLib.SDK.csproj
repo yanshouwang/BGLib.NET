@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net461;netstandard2.1;net5.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>yanshouwang</Authors>
+    <Company>yanshouwang</Company>
+    <Description>BGLib SDK for .NET</Description>
+    <Copyright>Copyright © yanshouwang 2021</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/yanshouwang/BGLib.NET.git</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/yanshouwang/BGLib.NET.git</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>BGLib BGAPI BLE112 BLE113 BLE121LR BLED112</PackageTags>
+    <PackageReleaseNotes>BGLib SDK for .NET</PackageReleaseNotes>
+    <DocumentationFile>BGLib.SDK.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="V5\Mesh\" />
+  </ItemGroup>
+
+</Project>

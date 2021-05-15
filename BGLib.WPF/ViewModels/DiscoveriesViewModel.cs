@@ -1,4 +1,4 @@
-﻿using BGLib.LowEnergy;
+﻿using BGLib.Wand;
 using BGLib.WPF.Views;
 using Prism.Commands;
 using Prism.Regions;
@@ -12,24 +12,46 @@ namespace BGLib.WPF.ViewModels
 {
     class DiscoveriesViewModel : BaseViewModel
     {
-        private readonly Central _central;
+        private Central _central;
+        public Central Central
+        {
+            get => _central;
+            set => SetProperty(ref _central, value);
+        }
 
         public IList<DiscoveryViewModel> Discoveries { get; }
+        public IList<string> PortNames { get; }
 
         public DiscoveriesViewModel(IRegionManager regionManager)
             : base(regionManager)
         {
             Discoveries = new SynchronizationObservableCollection<DiscoveryViewModel>();
-            _central = new Central("COM3", 256000, Parity.None, 8, StopBits.One);
-            _central.Discovered += OnDiscovered;
+            PortNames = SerialPort.GetPortNames();
+        }
+
+        private DelegateCommand<string> _connectCommand;
+        public DelegateCommand<string> ConnectCommand
+            => _connectCommand ??= new DelegateCommand<string>(ExecuteConnectCommand);
+
+        private void ExecuteConnectCommand(string portName)
+        {
+            try
+            {
+                Central = new Central(portName, 256000, Parity.None, 8, StopBits.One);
+                Central.Discovered += OnDiscovered;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void OnDiscovered(object sender, DiscoveryEventArgs e)
         {
-            var discovery = Discoveries.FirstOrDefault(i => Equals(i.Address, e.Address));
+            var discovery = Discoveries.FirstOrDefault(i => i.MAC == e.MAC && i.MacType == e.MacType);
             if (discovery == null)
             {
-                discovery = new DiscoveryViewModel(e.Type, e.Address, e.Name, e.Advertisements, e.RSSI);
+                discovery = new DiscoveryViewModel(e.Type, e.MAC, e.MacType, e.Name, e.Advertisements, e.RSSI);
                 Discoveries.Add(discovery);
             }
             else
@@ -58,13 +80,19 @@ namespace BGLib.WPF.ViewModels
 
         private DelegateCommand _startDiscoveryCommand;
         public DelegateCommand StartDiscoveryCommand
-            => _startDiscoveryCommand ??= new DelegateCommand(ExecuteStartDiscoveryCommand);
+            => _startDiscoveryCommand ??= new DelegateCommand(ExecuteStartDiscoveryCommand, CanExecuteStartDiscoveryCommand)
+            .ObservesProperty(() => Central);
+
+        private bool CanExecuteStartDiscoveryCommand()
+        {
+            return Central != null;
+        }
 
         private async void ExecuteStartDiscoveryCommand()
         {
             try
             {
-                await _central.StartDiscoveryAsync(Core.GAP.DiscoverMode.Observation);
+                await Central.StartDiscoveryAsync(DiscoverMode.Observation);
             }
             catch (Exception ex)
             {
@@ -74,13 +102,19 @@ namespace BGLib.WPF.ViewModels
 
         private DelegateCommand _stopDiscoveryCommand;
         public DelegateCommand StopDiscoveryCommand
-            => _stopDiscoveryCommand ??= new DelegateCommand(ExecuteStopDiscoveryCommand);
+            => _stopDiscoveryCommand ??= new DelegateCommand(ExecuteStopDiscoveryCommand, CanExecuteStopDiscoveryCommand)
+            .ObservesProperty(() => Central);
+
+        private bool CanExecuteStopDiscoveryCommand()
+        {
+            return Central != null;
+        }
 
         private async void ExecuteStopDiscoveryCommand()
         {
             try
             {
-                await _central.StopDiscoveryAsync();
+                await Central.StopDiscoveryAsync();
             }
             catch (Exception ex)
             {
@@ -105,8 +139,9 @@ namespace BGLib.WPF.ViewModels
         {
             var source = $"{nameof(PeripheralView)}";
             var parameters = new NavigationParameters();
-            parameters.Add("Central", _central);
-            parameters.Add("Address", discovery.Address);
+            parameters.Add("Central", Central);
+            parameters.Add("MAC", discovery.MAC);
+            parameters.Add("MacType", discovery.MacType);
             RegionManager.RequestNavigate(source, parameters);
         }
     }

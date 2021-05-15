@@ -1,4 +1,4 @@
-﻿using BGLib.LowEnergy;
+﻿using BGLib.Wand;
 using Prism.Mvvm;
 using System.Collections.Generic;
 
@@ -13,7 +13,8 @@ namespace BGLib.WPF.ViewModels
             set => SetProperty(ref _type, value);
         }
 
-        public Address Address { get; }
+        public MAC MAC { get; }
+        public MacType MacType { get; }
 
         private string _name;
         public string Name
@@ -36,10 +37,11 @@ namespace BGLib.WPF.ViewModels
             set => SetProperty(ref _rssi, value);
         }
 
-        public DiscoveryViewModel(DiscoveryType type, Address address, string name, IDictionary<byte, byte[]> advertisements, sbyte rssi)
+        public DiscoveryViewModel(DiscoveryType type, MAC mac,MacType macType, string name, IDictionary<byte, byte[]> advertisements, sbyte rssi)
         {
             Type = type;
-            Address = address;
+            MAC = mac;
+            MacType = macType;
             Name = name;
             Advertisements = advertisements;
             RSSI = rssi;

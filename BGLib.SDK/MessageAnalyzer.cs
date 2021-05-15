@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace BGLib.SDK
 {
-    internal class MessageAnalyzer
+    internal class MessageAnalyzer : IMessageAnalyzer
     {
         public event EventHandler<MessageEventArgs> Analyzed;
 
@@ -49,7 +49,7 @@ namespace BGLib.SDK
                 else
                 {
                     _value.Add(byteValue);
-                    if (_value.Count < _byte2)
+                    if (_value.Count < _length)
                         continue;
                     OnAnalyzed();
                 }

@@ -1,9 +1,8 @@
-﻿using BGLib.LowEnergy;
+﻿using BGLib.Wand;
 using Prism.Commands;
 using Prism.Regions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Windows;
 
@@ -12,14 +11,9 @@ namespace BGLib.WPF.ViewModels
     class PeripheralViewModel : BaseViewModel
     {
         private Central _central;
+        private MAC _mac;
+        private MacType _macType;
         private Peripheral _peripheral;
-
-        private Address _address;
-        public Address Address
-        {
-            get => _address;
-            set => SetProperty(ref _address, value);
-        }
 
         private bool _connected;
         public bool Connected
@@ -48,8 +42,9 @@ namespace BGLib.WPF.ViewModels
 
         public override bool IsNavigationTarget(NavigationContext context)
         {
-            context.Parameters.TryGetValue<Address>("Address", out var address);
-            return Equals(address, Address);
+            context.Parameters.TryGetValue<MAC>("MAC", out var mac);
+            context.Parameters.TryGetValue<MacType>("MacType", out var macType);
+            return mac == _mac && _macType == macType;
         }
 
         public override void OnNavigatedTo(NavigationContext context)
@@ -57,7 +52,8 @@ namespace BGLib.WPF.ViewModels
             base.OnNavigatedTo(context);
 
             context.Parameters.TryGetValue("Central", out _central);
-            context.Parameters.TryGetValue("Address", out _address);
+            context.Parameters.TryGetValue("MAC", out _mac);
+            context.Parameters.TryGetValue("MacType", out _macType);
 
             _central.ConnectionLost += OnConnectioinLost;
             _central.CharacteristicValueChanged += OnCharacteristicValueChanged;
@@ -106,7 +102,7 @@ namespace BGLib.WPF.ViewModels
         {
             try
             {
-                _peripheral = await _central.ConnectAsync(_address);
+                _peripheral = await _central.ConnectAsync(_mac, _macType);
                 Connected = true;
                 var services = await _central.GetServicesAsync(_peripheral);
                 foreach (var service in services)
@@ -121,23 +117,6 @@ namespace BGLib.WPF.ViewModels
                     var serviceNode = new TreeNode(service, characteristicNodes);
                     ServiceNodes.Add(serviceNode);
                 }
-                //var serviceNode1 = ServiceNodes.FirstOrDefault(
-                //    i => i.Object is GattService service && service.UUID == Guid.Parse("0000A002-0000-1000-8000-00805F9B34FB"));
-                //if (serviceNode1 == null)
-                //    return;
-                //var characteristicNode1 = serviceNode1.Nodes.FirstOrDefault(
-                //    i => i.Object is GattCharacteristic characteristic && characteristic.UUID == Guid.Parse("0000C305-0000-1000-8000-00805F9B34FB"));
-                //if (characteristicNode1 == null)
-                //    return;
-                //var characteristic1 = characteristicNode1.Object as GattCharacteristic;
-                //await _central.ConfigAsync(characteristic1, GattCharacteristicSettings.Notify);
-                //else if (characteristic.UUID == Guid.Parse("0000C304-0000-1000-8000-00805F9B34FB"))
-                //{
-                //    var message = "@BGLib\r\n";
-                //    var value = Encoding.UTF8.GetBytes(message);
-                //    await _central.WriteAsync(characteristic, value, GattCharacteristicWriteType.Default);
-                //    Messages.Add(message);
-                //}
             }
             catch (Exception ex)
             {

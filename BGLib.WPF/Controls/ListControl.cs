@@ -12,14 +12,14 @@ namespace BGLib.WPF.Controls
     /// 将此 XmlNamespace 特性添加到要使用该特性的标记文件的根
     /// 元素中:
     ///
-    ///     xmlns:MyNamespace="clr-namespace:BGLib.WPF"
+    ///     xmlns:MyNamespace="clr-namespace:BGLib.LegacyWPF"
     ///
     ///
     /// 步骤 1b) 在其他项目中存在的 XAML 文件中使用该自定义控件。
     /// 将此 XmlNamespace 特性添加到要使用该特性的标记文件的根
     /// 元素中:
     ///
-    ///     xmlns:MyNamespace="clr-namespace:BGLib.WPF;assembly=BGLib.WPF"
+    ///     xmlns:MyNamespace="clr-namespace:BGLib.LegacyWPF;assembly=BGLib.LegacyWPF"
     ///
     /// 您还需要添加一个从 XAML 文件所在的项目到此项目的项目引用，
     /// 并重新生成以避免编译错误:

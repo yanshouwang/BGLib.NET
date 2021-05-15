@@ -1,43 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.IO.Ports;
 
 namespace BGLib.SDK
 {
-    public class MessageHub
+    public abstract class MessageHub : IDisposable
     {
         public event EventHandler<MessageEventArgs> Analyzed;
 
-        private readonly ICommunicator _communicator;
+        private readonly SerialCommunicator _communicator;
         private readonly MessageAnalyzer _analyzer;
 
-        public System.Messenger System { get; }
-        public PS.Messenger PS { get; }
-        public AttributeDatabase.Messenger AttributeDatabase { get; }
-        public Connection.Messenger Connection { get; }
-        public AttributeClient.Messenger AttributeClient { get; }
-        public SM.Messenger SM { get; }
-        public GAP.Messenger GAP { get; }
-        public Hardware.Messenger Hardware { get; }
-        public Testing.Messenger Testing { get; }
-        public DFU.Messenger DFU { get; }
+        internal byte Type { get; }
 
-        public MessageHub(ICommunicator communicator)
+        public MessageHub(byte type, string portName, int baudRate, Parity parity, int dataBits, StopBits stopBits)
         {
-            _communicator = communicator;
+            Type = type;
+            _communicator = new SerialCommunicator(portName, baudRate, parity, dataBits, stopBits);
             _analyzer = new MessageAnalyzer();
-
-            System = new System.Messenger(this);
-            PS = new PS.Messenger(this);
-            AttributeDatabase = new AttributeDatabase.Messenger(this);
-            Connection = new Connection.Messenger(this);
-            AttributeClient = new AttributeClient.Messenger(this);
-            SM = new SM.Messenger(this);
-            GAP = new GAP.Messenger(this);
-            Hardware = new Hardware.Messenger(this);
-            Testing = new Testing.Messenger(this);
-            DFU = new DFU.Messenger(this);
 
             _communicator.ValueChanged += OnValueChanged;
             _analyzer.Analyzed += OnAnalyzed;
@@ -53,10 +32,46 @@ namespace BGLib.SDK
             Analyzed?.Invoke(this, e);
         }
 
-        public void Write(Message command)
+        internal void Write(Message command)
         {
             var value = command.ToArray();
             _communicator.Write(value);
         }
+
+        #region IDisposable
+
+        private bool _disposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // TODO: 释放托管状态(托管对象)
+                    _communicator.Dispose();
+                }
+
+                // TODO: 释放未托管的资源(未托管的对象)并替代终结器
+                // TODO: 将大型字段设置为 null
+                _disposed = true;
+            }
+        }
+
+        // // TODO: 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器
+        // ~MessageHub()
+        // {
+        //     // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }

@@ -3,7 +3,7 @@ using System.IO.Ports;
 
 namespace BGLib.SDK
 {
-    public class SerialCommunicator : ICommunicator, IDisposable
+    internal class SerialCommunicator : ICommunicator, IDisposable
     {
         private readonly SerialPort _serial;
 

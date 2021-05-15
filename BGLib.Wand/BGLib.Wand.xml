@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BGLib.Wand</name>
+    </assembly>
+    <members>
+        <member name="T:BGLib.Wand.DiscoverMode">
+            <summary>
+            GAP Discover modes
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.DiscoverMode.Limited">
+            <summary>
+            Discover only limited discoverable devices, that is, Slaves which have
+            the LE Limited Discoverable Mode bit set in the Flags AD type of their
+            advertisement packets.
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.DiscoverMode.Generic">
+            <summary>
+            Discover limited and generic discoverable devices, that is, Slaves which
+            have the LE Limited Discoverable Mode or the LE General
+            Discoverable Mode bit set in the Flags AD type of their advertisement
+            packets.
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.DiscoverMode.Observation">
+            <summary>
+            Discover all devices regardless of the Flags AD type, so also devices in
+            non-discoverable mode will be reported to host.
+            </summary>
+        </member>
+        <member name="T:BGLib.Wand.GattCharacteristicProperty">
+            <summary>
+            The Characteristic Properties bit field determines how the Characteristic Value 
+            can be used, or how the characteristic descriptors(see Section 3.3.3) can be
+            accessed.If the bits defined in Table 3.5 are set, the action described is 
+            permitted.Multiple characteristic properties can be set.
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.GattCharacteristicProperty.Broadcast">
+            <summary>
+            If set, permits broadcasts of the Characteristic Value using 
+            Server Characteristic Configuration Descriptor. If set, the Server
+            Characteristic Configuration Descriptor shall exist.
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.GattCharacteristicProperty.Read">
+            <summary>
+            If set, permits reads of the Characteristic Value using procedures 
+            defined in Section 4.8
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.GattCharacteristicProperty.WriteWithoutResponse">
+            <summary>
+            If set, permit writes of the Characteristic Value without response 
+            using procedures defined in Section 4.9.1.
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.GattCharacteristicProperty.Write">
+            <summary>
+            If set, permits writes of the Characteristic Value with response 
+            using procedures defined in Section 4.9.3 or Section 4.9.4.
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.GattCharacteristicProperty.Notify">
+            <summary>
+            If set, permits notifications of a Characteristic Value without
+            acknowledgment using the procedure defined in Section 4.10. If
+            set, the Client Characteristic Configuration Descriptor shall exist.
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.GattCharacteristicProperty.Indicate">
+            <summary>
+            If set, permits indications of a Characteristic Value with acknowl-
+            edgment using the procedure defined in Section 4.11. If set, the 
+            Client Characteristic Configuration Descriptor shall exist.
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.GattCharacteristicProperty.AuthenticatedSignedWrites">
+            <summary>
+            If set, permits signed writes to the Characteristic Value using the 
+            procedure defined in Section 4.9.2.
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.GattCharacteristicProperty.ExtendedProperties">
+            <summary>
+            If set, additional characteristic properties are defined in the Char-
+            acteristic Extended Properties Descriptor defined in Section 
+            3.3.3.1. If set, the Characteristic Extended Properties Descriptor
+            shall exist.
+            </summary>
+        </member>
+        <member name="T:BGLib.Wand.MacType">
+            <summary>
+            Bluetooth address types
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.MacType.Public">
+            <summary>
+            Public Address
+            </summary>
+        </member>
+        <member name="F:BGLib.Wand.MacType.Random">
+            <summary>
+            Random Address
+            </summary>
+        </member>
+    </members>
+</doc>

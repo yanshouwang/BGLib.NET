@@ -2,7 +2,7 @@
 
 namespace BGLib.SDK
 {
-    public interface ICommunicator
+    internal interface ICommunicator
     {
         event EventHandler<ValueEventArgs> ValueChanged; 
 

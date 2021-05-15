@@ -27,11 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BGLib.SDK\BGLib.SDK.csproj" />
+    <PackageReference Include="BGLib.SDK" Version="1.0.0" />
   </ItemGroup>
-
-  <!--<ItemGroup>
-    <PackageReference Include="BGLib.Core" Version="1.0.0" />
-  </ItemGroup>-->
 
 </Project>

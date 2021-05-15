@@ -122,12 +122,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
     <PackageReference Include="Prism.Unity" Version="8.0.0.1909" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\BGLib.Wand\BGLib.Wand.csproj">
-      <Project>{b813e894-7454-4527-ac96-45ec04e9669d}</Project>
-      <Name>BGLib.Wand</Name>
-    </ProjectReference>
+    <PackageReference Include="BGLib.Wand" Version="1.0.0" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

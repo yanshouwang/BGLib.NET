@@ -15,7 +15,7 @@
     <PackageProjectUrl>https://github.com/yanshouwang/BGLib.NET.git</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yanshouwang/BGLib.NET.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <PackageTags>BGLib BGAPI Bluegiga</PackageTags>
+    <PackageTags>BGLib BGAPI BLE112 BLE113 BLE121LR BLED112</PackageTags>
     <PackageReleaseNotes>BGLib SDK for .NET</PackageReleaseNotes>
     <DocumentationFile>BGLib.SDK.xml</DocumentationFile>
   </PropertyGroup>
